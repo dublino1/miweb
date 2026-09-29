@@ -1,0 +1,2529 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#020617">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Franco's Academy 27">
+    <link rel="icon" type="image/png" sizes="512x512" href="francos-academy-27-icon-512.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="francos-academy-27-icon-180.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="francos-academy-27-icon-192.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="francos-academy-27-icon-512.png">
+    <link rel="manifest" href="manifest.json">
+    <title>Franco's Academy 27 - Football Career Simulator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&family=Teko:wght@600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        card: ['Teko', 'sans-serif'],
+                    },
+                    colors: {
+                        pitch: {
+                            800: '#062016',
+                            900: '#02120b',
+                            accent: '#10b981',
+                            gold: '#f59e0b',
+                            cardGlow: '#22c55e'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #10b981; }
+
+        .fut-card {
+            background: linear-gradient(135deg, #2a2205 0%, #171201 50%, #000000 100%);
+            border: 2px solid #f59e0b;
+            box-shadow: 0 0 35px rgba(245, 158, 11, 0.45);
+            position: relative;
+            overflow: hidden;
+        }
+        .fut-card::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,215,0,0.2) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        html { background:#020617; }
+        body { overflow-x:hidden; -webkit-tap-highlight-color:transparent; padding-bottom:env(safe-area-inset-bottom); }
+        header { padding-top: env(safe-area-inset-top); }
+        header > .max-w-7xl { min-height:56px; }
+        button, input, select { -webkit-appearance:none; }
+        button { touch-action:manipulation; }
+        img, svg { max-width:100%; }
+        .mobile-mode { font-size: 16px; }
+        .mobile-mode main { max-width: 100% !important; padding-left: .75rem !important; padding-right: .75rem !important; }
+        .mobile-mode button, .mobile-mode select, .mobile-mode input { min-height: 48px; }
+        .mobile-mode .text-xs { font-size: .82rem; }
+        .mobile-mode .text-\[10px\] { font-size: .7rem; }
+        .mobile-mode .text-\[9px\] { font-size: .68rem; }
+        .pitch-field { background:linear-gradient(180deg,rgba(16,185,129,.20),rgba(6,78,59,.42)); border:2px solid rgba(110,231,183,.35); position:relative; overflow:hidden; }
+        .pitch-field:before { content:''; position:absolute; inset:10px; border:2px solid rgba(255,255,255,.16); border-radius:10px; pointer-events:none; }
+        .pitch-field:after { content:''; position:absolute; left:10%; right:10%; top:50%; border-top:2px solid rgba(255,255,255,.12); pointer-events:none; }
+        .position-row { position:relative; z-index:2; display:flex; justify-content:center; align-items:center; gap:clamp(8px,3vw,28px); }
+        .position-dot { width:82px; min-height:52px; border-radius:12px; background:rgba(15,23,42,.96); border:2px solid rgba(148,163,184,.32); color:#e2e8f0; font-weight:900; font-size:13px; cursor:pointer; transition:.18s; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.05; box-shadow:0 5px 12px rgba(0,0,0,.18); }
+        .position-dot span { font-size:8px; font-weight:600; color:#94a3b8; margin-top:4px; }
+        .position-dot:hover { transform:translateY(-2px) scale(1.03); border-color:#10b981; }
+        .position-dot.active { background:#10b981; color:#052e16; border-color:#a7f3d0; box-shadow:0 0 20px rgba(16,185,129,.38); }
+        .position-dot.active span { color:#064e3b; }
+        .pitch-half-label { position:relative; z-index:2; text-align:center; font-size:8px; letter-spacing:.2em; font-weight:900; color:rgba(255,255,255,.35); }
+        .globe-visual { width:110px; height:110px; margin:0 auto 12px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:72px; filter:drop-shadow(0 0 18px rgba(16,185,129,.35)); background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.15),rgba(16,185,129,.05) 45%,transparent 70%); }
+        .country-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:8px; max-height:55vh; overflow-y:auto; }
+        .country-option { text-align:left; padding:10px 12px; border-radius:10px; background:#0f172a; border:1px solid #1e293b; color:#e2e8f0; font-size:12px; font-weight:700; }
+        .country-option:hover { border-color:#10b981; background:#13251f; }
+        .rep-alert { animation:repPulse 1.8s ease-in-out infinite; }
+        @keyframes repPulse { 0%,100%{box-shadow:0 0 0 rgba(16,185,129,0)} 50%{box-shadow:0 0 18px rgba(16,185,129,.22)} }
+
+        /* Experiencia móvil */
+        @media (max-width: 640px) {
+            body { font-size:14px; }
+            header .max-w-7xl { padding: .65rem .75rem; padding-top:.65rem; gap:.5rem; }
+            header h1 { font-size:1rem; letter-spacing:.06em; white-space:nowrap; }
+            header .bg-emerald-500\/10 { padding:.45rem; }
+            #headerQuickStats { display:none !important; }
+            #appNavigation { top:calc(56px + env(safe-area-inset-top)); padding:.45rem .5rem; }
+            #appNavigation > div { gap:.4rem; padding-bottom:2px; scrollbar-width:none; }
+            #appNavigation > div::-webkit-scrollbar { display:none; }
+            #appNavigation button { min-height:44px; padding:.65rem .8rem; white-space:nowrap; flex:0 0 auto; }
+            main { padding:.75rem !important; }
+            section { max-width:100% !important; }
+            .glass-panel { border-radius:1rem; }
+            .pitch-field { height:330px !important; padding:.65rem !important; }
+            .position-row { gap:clamp(3px,2vw,10px); }
+            .position-dot { width:72px; min-height:48px; font-size:12px; border-width:1px; }
+            .position-dot span { font-size:7px; }
+            .country-grid { grid-template-columns:repeat(2,minmax(0,1fr)); max-height:58vh; }
+            .country-option { min-height:44px; }
+            #hubFace { width:68px !important; height:68px !important; flex:0 0 68px; }
+            #hubPlayerName { font-size:1.55rem !important; line-height:1.05; }
+            .fut-card { border-width:1px; }
+            .fut-card .text-5xl { font-size:2.5rem; }
+            .fut-card .text-6xl { font-size:3rem; }
+            .grid.grid-cols-3 { grid-template-columns:1fr !important; }
+            .grid.grid-cols-5 { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+            [class*="max-w-5xl"], [class*="max-w-6xl"], [class*="max-w-7xl"] { max-width:100% !important; }
+            .fixed.inset-0 { padding:.65rem !important; }
+            .fixed.inset-0 > div { max-height:92vh; overflow-y:auto; overscroll-behavior:contain; width:100%; }
+            #toastContainer { left:.75rem; right:.75rem; bottom:calc(.75rem + env(safe-area-inset-bottom)); }
+            #toastContainer > div { width:100%; max-width:none; }
+            table { min-width:600px; }
+            .overflow-x-auto { -webkit-overflow-scrolling:touch; }
+        }
+
+        @media (max-width: 380px) {
+            header .flex.items-center.space-x-3 { gap:.45rem; }
+            header h1 { font-size:.88rem; }
+            main { padding:.55rem !important; }
+            .position-dot { width:63px; font-size:11px; }
+            .position-dot span { display:none; }
+        }
+
+        @media (min-width: 641px) {
+            body.mobile-mode main { padding-left:1rem !important; padding-right:1rem !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col justify-between selection:bg-emerald-500 selection:text-slate-950">
+
+    <header class="bg-slate-900/90 border-b border-slate-800 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="app.showScreen('seasonHub')">
+                <div class="bg-emerald-500/10 p-2 rounded-xl border border-emerald-500/30 text-emerald-400">
+                    <i class="fa-solid fa-graduation-cap text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-wider bg-gradient-to-r from-emerald-400 via-teal-300 to-amber-400 bg-clip-text text-transparent uppercase">
+                        FRANCO'S ACADEMY
+                    </h1>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest hidden sm:block">Simulador Profesional de Carrera</p>
+                </div>
+            </div>
+
+            <!-- Quick Navbar Stats -->
+            <div id="headerQuickStats" class="hidden flex items-center space-x-3 sm:space-x-5 bg-slate-800/60 px-4 py-1.5 rounded-full border border-slate-700/50 text-xs">
+                <div class="text-center">
+                    <span class="text-[9px] text-slate-400 block uppercase font-bold">Edad</span>
+                    <span id="navAge" class="font-black text-slate-200">16</span>
+                </div>
+                <div class="h-5 w-px bg-slate-700"></div>
+                <div class="text-center">
+                    <span class="text-[9px] text-slate-400 block uppercase font-bold">Club</span>
+                    <span id="navClub" class="font-black text-emerald-400 truncate max-w-[90px] sm:max-w-[130px]">Club</span>
+                </div>
+                <div class="h-5 w-px bg-slate-700"></div>
+                <div class="text-center">
+                    <span class="text-[9px] text-slate-400 block uppercase font-bold">OVR</span>
+                    <span id="navOVR" class="font-black text-amber-400">62</span>
+                </div>
+                <div class="h-5 w-px bg-slate-700"></div>
+                <div class="text-center">
+                    <span class="text-[9px] text-slate-400 block uppercase font-bold">Banco</span>
+                    <span id="navBank" class="font-black text-emerald-400">€0</span>
+                </div>
+            </div>
+
+            <!-- Sound and Reset Buttons -->
+            <div class="flex items-center space-x-2">
+                <button id="btnSoundToggle" onclick="audioManager.toggle()" class="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 text-xs transition" title="Sonido">
+                    <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+                </button>
+                <button id="btnResetData" onclick="app.confirmReset()" class="p-2.5 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 rounded-lg text-xs transition hidden" title="Reiniciar Carrera">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav id="appNavigation" class="hidden bg-slate-900 border-b border-slate-800 px-4 py-2 sticky top-[61px] z-40 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto flex space-x-2 overflow-x-auto text-xs font-bold">
+            <button onclick="app.showScreen('seasonHub')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center space-x-2 transition">
+                <i class="fa-solid fa-house text-emerald-400"></i> <span>Mi Carrera</span>
+            </button>
+            <button onclick="app.showScreen('lifestyle')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center space-x-2 transition">
+                <i class="fa-solid fa-sack-dollar text-amber-400"></i> <span>Estilo de Vida & Finanzas</span>
+            </button>
+            <button onclick="app.showScreen('newsFeed')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center space-x-2 transition">
+                <i class="fa-solid fa-newspaper text-teal-400"></i> <span>Noticias & Fichajes Liga</span>
+            </button>
+            <button onclick="app.showScreen('careerHistory')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center space-x-2 transition">
+                <i class="fa-solid fa-history text-slate-400"></i> <span>Historial</span>
+            </button>
+            <button onclick="app.showScreen('representative')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center space-x-2 transition relative">
+                <i class="fa-solid fa-user-tie text-violet-400"></i> <span>Mi Representante</span>
+                <span id="navRepBadge" class="hidden rep-alert bg-rose-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-black">NUEVO</span>
+            </button>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
+
+        <!-- SCREEN 1: PLAYER CREATION -->
+        <section id="screenCreation" class="max-w-2xl mx-auto glass-panel p-6 sm:p-8 rounded-2xl shadow-2xl border border-slate-800 transition-all duration-300">
+            <div class="text-center mb-8">
+                <span class="inline-block px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-xs font-semibold uppercase tracking-wider mb-2 border border-emerald-500/20">Bienvenido a Franco's Academy</span>
+                <h2 class="text-3xl font-extrabold text-slate-100">Crea tu Futbolista Profesional</h2>
+                <p class="text-xs text-slate-400 mt-1">Sueldos 100% reales, eventos inesperados, lesiones y entrenamiento nocturno a escondidas.</p>
+            </div>
+
+            <form id="formCreation" onsubmit="app.createPlayer(event)" class="space-y-6">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-300 mb-2">Nombre Completo</label>
+                    <input type="text" id="inputName" required placeholder="Ej: Franco Armani" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-emerald-500 transition text-sm">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-300 mb-2">Dorsal</label>
+                        <input type="number" id="inputShirtNumber" min="1" max="99" value="10" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-emerald-500 transition text-sm">
+                        <p class="text-[10px] text-slate-500 mt-1">Elige tu número del 1 al 99.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-300 mb-2">Nacionalidad</label>
+                        <button type="button" onclick="app.openCountryPicker()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 text-sm flex items-center justify-between hover:border-emerald-500 transition">
+                            <span id="selectedCountryLabel">🇪🇸 España</span><i class="fa-solid fa-globe text-emerald-400"></i>
+                        </button>
+                        <input type="hidden" id="inputNationality" value="España">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-300 mb-2">Posición Principal</label>
+                        <button type="button" onclick="app.focusPositionPicker()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 text-sm flex items-center justify-between hover:border-emerald-500 transition">
+                            <span id="selectedPositionLabel">POR · Portero</span><i class="fa-solid fa-futbol text-emerald-400"></i>
+                        </button>
+                        <input type="hidden" id="inputPosition" value="POR">
+                    </div>
+                </div>
+
+                <div id="positionPicker" class="bg-slate-900/60 rounded-2xl border border-slate-800 p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <div><p class="text-xs font-black uppercase text-slate-200">Elige tu posición en el XI</p><p class="text-[10px] text-slate-500">Toca cualquier puesto del campo</p></div>
+                        <span id="positionPickerHint" class="text-[10px] text-emerald-400 font-bold">POR seleccionado</span>
+                    </div>
+                    <div class="pitch-field h-[390px] rounded-2xl p-4 flex flex-col justify-between">
+                        <div class="pitch-half-label">ATAQUE</div>
+                        <div class="position-row"><button type="button" class="position-dot" data-position="EI" onclick="app.selectPosition('EI','Extremo izquierdo',this)">EI<span>Extremo izq.</span></button><button type="button" class="position-dot" data-position="DC" onclick="app.selectPosition('DC','Delantero centro',this)">DC<span>Delantero</span></button><button type="button" class="position-dot" data-position="ED" onclick="app.selectPosition('ED','Extremo derecho',this)">ED<span>Extremo der.</span></button></div>
+                        <div class="position-row"><button type="button" class="position-dot" data-position="MCO" onclick="app.selectPosition('MCO','Mediapunta',this)">MCO<span>Mediapunta</span></button><button type="button" class="position-dot" data-position="SD" onclick="app.selectPosition('SD','Segundo delantero',this)">SD<span>2.º delantero</span></button><button type="button" class="position-dot" data-position="MC" onclick="app.selectPosition('MC','Mediocentro',this)">MC<span>Mediocentro</span></button></div>
+                        <div class="position-row"><button type="button" class="position-dot" data-position="LI" onclick="app.selectPosition('LI','Lateral izquierdo',this)">LI<span>Lateral izq.</span></button><button type="button" class="position-dot" data-position="MCD" onclick="app.selectPosition('MCD','Mediocentro defensivo',this)">MCD<span>Pivote</span></button><button type="button" class="position-dot" data-position="LD" onclick="app.selectPosition('LD','Lateral derecho',this)">LD<span>Lateral der.</span></button></div>
+                        <div class="position-row"><button type="button" class="position-dot" data-position="DFC" onclick="app.selectPosition('DFC','Defensa central',this)">DFC<span>Central</span></button></div>
+                        <div class="position-row"><button type="button" class="position-dot active" data-position="POR" onclick="app.selectPosition('POR','Portero',this)">POR<span>Portero</span></button></div>
+                        <div class="pitch-half-label">DEFENSA</div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-300 mb-2">País de nacimiento / nacionalidad</label>
+                    <p class="text-[10px] text-slate-500">Pulsa la bola del mundo para abrir todos los países disponibles.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-300 mb-2">Liga Soñada (Meta Final)</label>
+                    <select id="inputTargetLeague" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 text-sm focus:outline-none focus:border-emerald-500 transition">
+                        <option value="La Liga Española">🇪🇸 La Liga Española</option>
+                        <option value="Premier League">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League (Inglaterra)</option>
+                        <option value="Liga Profesional Argentina">🇦🇷 Liga Profesional Argentina</option>
+                        <option value="Serie A Italia">🇮🇹 Serie A (Italia)</option>
+                        <option value="Bundesliga">🇩🇪 Bundesliga (Alemania)</option>
+                        <option value="Ligue 1">🇫🇷 Ligue 1 (Francia)</option>
+                        <option value="Brasileirão">🇧🇷 Brasileirão (Brasil)</option>
+                        <option value="Liga Portugal">🇵🇹 Liga Portugal</option>
+                        <option value="Eredivisie">🇳🇱 Eredivisie (Países Bajos)</option>
+                    </select>
+                </div>
+
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 text-xs text-slate-400 space-y-1">
+                    <p class="font-bold text-amber-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Novedades de la Carrera:</p>
+                    <p>• Comenzarás en un equipo modesto aleatorio con un sueldo juvenil realista (~€40k/año).</p>
+                    <p>• Puedes entrenar en secreto de noche para subir media rápido, pero ¡cuidado con las lesiones graves!</p>
+                </div>
+
+                <button type="button" onclick="app.randomCareer()" class="w-full bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-400 hover:to-fuchsia-400 text-white font-black py-3 px-6 rounded-xl text-sm shadow-lg uppercase tracking-wider transition transform hover:-translate-y-0.5">
+                    <i class="fa-solid fa-dice mr-2"></i> Carrera Ramdom
+                </button>
+
+                <button type="submit" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black py-4 px-6 rounded-xl text-lg shadow-lg shadow-emerald-950/50 uppercase tracking-wider transition transform hover:-translate-y-0.5">
+                    <i class="fa-solid fa-play mr-2"></i> Iniciar Carrera Profesional
+                </button>
+            </form>
+        </section>
+
+        <!-- SCREEN 2: CAREER HUB -->
+        <section id="screenSeasonHub" class="hidden space-y-6">
+            
+            <!-- Player Status Header -->
+            <div class="glass-panel p-6 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden border-l-4 border-l-emerald-500">
+                <div class="flex items-center space-x-5">
+                    <div class="relative">
+                        <div id="hubFace" class="w-20 h-20 bg-slate-800 rounded-2xl flex items-center justify-center border-2 border-emerald-500/50 overflow-hidden shadow-inner" title="Retrato generado para esta carrera">
+                            <i id="hubPositionIcon" class="fa-solid fa-shirt text-emerald-400 text-3xl"></i>
+                        </div>
+                        <span id="hubOVRBadge" class="absolute -bottom-2 -right-2 bg-amber-500 text-slate-950 text-xs font-black px-2 py-0.5 rounded-md shadow-md">
+                            62 OVR
+                        </span>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <h2 id="hubPlayerName" class="text-2xl font-black text-slate-100">Franco Armani</h2>
+                            <span id="hubFlag" class="text-lg">🇦🇷</span>
+                        </div>
+                        <p class="text-sm text-slate-400"><span id="hubAge">16</span> Años | <span id="hubPos" class="text-emerald-400 font-semibold">DEL</span> | Dorsal <span id="hubShirtNumber" class="text-violet-400 font-black">10</span> | <span id="hubClub" class="text-amber-400 font-semibold">Sacachispas</span></p>
+                        <p class="text-xs text-slate-500 mt-1"><i class="fa-solid fa-location-dot text-emerald-400 mr-1"></i> <span id="hubOrigin">España</span></p>
+                        <div class="mt-2 flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-slate-400">
+                            <span><i class="fa-solid fa-coins text-amber-400 mr-1"></i> Sueldo: <strong id="hubSalary" class="text-slate-200">€45,000/año</strong></span>
+                            <span>•</span>
+                            <span><i class="fa-solid fa-piggy-bank text-emerald-400 mr-1"></i> Banco: <strong id="hubBank" class="text-emerald-400">€0</strong></span>
+                            <span>•</span>
+                            <span><i class="fa-solid fa-user-gear text-teal-400 mr-1"></i> Rol: <strong id="hubSquadRole" class="text-slate-200">Rotación</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fast Actions -->
+                <div class="w-full md:w-auto flex flex-col sm:flex-row md:flex-col gap-3 items-center md:items-end">
+                    <button onclick="app.simNextSeasonDirectly()" class="w-full sm:w-auto bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-400 text-slate-950 font-black px-8 py-4 rounded-xl text-lg shadow-lg hover:shadow-emerald-500/20 transform hover:-translate-y-0.5 transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-forward text-xl"></i>
+                        <span>JUGAR TEMPORADA <span id="hubCurrentYear">2026</span></span>
+                    </button>
+                    <div class="flex w-full sm:w-auto space-x-2">
+                        <button onclick="app.retirePlayer(true)" class="flex-1 bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/40 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1" title="Retirarte ahora de tu carrera profesional">
+                            <i class="fa-solid fa-person-walking-arrow-right text-rose-400"></i>
+                            <span>Retirarse</span>
+                        </button>
+                        <button id="btnNightTraining" onclick="app.triggerSecretNightTraining()" class="flex-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1" title="Entrena de noche a escondidas para ganar hasta +3 OVR con riesgo de lesión">
+                            <i class="fa-solid fa-moon text-amber-400"></i>
+                            <span id="btnNightTrainingLabel">Entrenar a Escondidas</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sala de Trofeos -->
+            <div class="glass-panel p-5 rounded-2xl border border-slate-800">
+                <h3 class="text-sm font-bold text-slate-200 mb-3"><i class="fa-solid fa-trophy text-amber-400 mr-2"></i>Sala de Trofeos</h3>
+                <div id="trophyRoom" class="flex flex-wrap gap-4"></div>
+            </div>
+
+            <!-- Health & Injury Banner -->
+            <div id="hubInjuryBanner" class="hidden bg-rose-500/10 border border-rose-500/40 p-4 rounded-xl flex items-center space-x-3 text-xs text-rose-300">
+                <i class="fa-solid fa-user-ninja text-2xl text-rose-400"></i>
+                <div>
+                    <h4 class="font-bold uppercase text-rose-200">¡Lesión Activa!</h4>
+                    <p id="hubInjuryDetail">El jugador está fuera por lesión muscular.</p>
+                </div>
+            </div>
+
+            <!-- Indicators Bar -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="glass-panel p-3.5 rounded-xl border-l-4 border-l-amber-500">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase block">Personalidad</span>
+                    <span id="hubPersonality" class="text-sm font-extrabold text-amber-400">Promesa Profesional</span>
+                </div>
+                <div class="glass-panel p-3.5 rounded-xl border-l-4 border-l-emerald-500">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase block">Estado Físico</span>
+                    <span id="hubEnergy" class="text-sm font-extrabold text-emerald-400">100% Óptimo</span>
+                </div>
+                <div class="glass-panel p-3.5 rounded-xl border-l-4 border-l-teal-500">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase block">Moral</span>
+                    <span id="hubMorale" class="text-sm font-extrabold text-teal-400">Alta</span>
+                </div>
+                <div class="glass-panel p-3.5 rounded-xl border-l-4 border-l-rose-500">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase block">Riesgo de Lesión</span>
+                    <span id="hubInjuryRisk" class="text-sm font-extrabold text-slate-200">2%</span>
+                </div>
+            </div>
+
+            <!-- Entorno de desarrollo -->
+            <div class="glass-panel p-5 rounded-2xl border border-slate-800">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-200"><i class="fa-solid fa-building-columns text-emerald-400 mr-2"></i>Entorno de desarrollo</h3>
+                        <p class="text-[10px] text-slate-500 mt-1">Tu progresión depende del trabajo del club, no solo de tu talento.</p>
+                    </div>
+                    <span id="hubDevelopmentScore" class="text-xs font-black px-3 py-1 rounded-full bg-slate-800 text-emerald-400">--/100</span>
+                </div>
+                <div class="grid grid-cols-3 gap-3 mt-4">
+                    <div class="bg-slate-900 rounded-xl p-3"><span class="text-[9px] uppercase text-slate-500 block">Entrenadores</span><strong id="hubCoachQuality" class="text-emerald-400">--</strong>/100</div>
+                    <div class="bg-slate-900 rounded-xl p-3"><span class="text-[9px] uppercase text-slate-500 block">Instalaciones</span><strong id="hubFacilities" class="text-emerald-400">--</strong>/100</div>
+                    <div class="bg-slate-900 rounded-xl p-3"><span class="text-[9px] uppercase text-slate-500 block">Metodología médica</span><strong id="hubMedicalQuality" class="text-emerald-400">--</strong>/100</div>
+                </div>
+                <p id="hubDevelopmentText" class="text-xs text-slate-400 mt-3"></p>
+            </div>
+
+            <!-- Attributes & Stats -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                <!-- Atributos -->
+                <div class="glass-panel p-5 rounded-2xl space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-300 flex items-center">
+                            <i class="fa-solid fa-chart-line text-emerald-400 mr-2"></i> Atributos Futbolísticos
+                        </h3>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span class="text-slate-400">Ritmo / Velocidad (RIT)</span>
+                                <span id="attrPace" class="text-emerald-400">64</span>
+                            </div>
+                            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                                <div id="barPace" class="bg-emerald-500 h-full transition-all duration-500" style="width: 64%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span class="text-slate-400">Tiro / Remate (SHO)</span>
+                                <span id="attrShooting" class="text-emerald-400">60</span>
+                            </div>
+                            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                                <div id="barShooting" class="bg-emerald-500 h-full transition-all duration-500" style="width: 60%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span class="text-slate-400">Pase / Visión (PAS)</span>
+                                <span id="attrPassing" class="text-emerald-400">58</span>
+                            </div>
+                            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                                <div id="barPassing" class="bg-emerald-500 h-full transition-all duration-500" style="width: 58%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span class="text-slate-400">Regate / Control (DRI)</span>
+                                <span id="attrDribbling" class="text-emerald-400">62</span>
+                            </div>
+                            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                                <div id="barDribbling" class="bg-emerald-500 h-full transition-all duration-500" style="width: 62%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span class="text-slate-400">Defensa / Marca (DEF)</span>
+                                <span id="attrDefense" class="text-emerald-400">55</span>
+                            </div>
+                            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                                <div id="barDefense" class="bg-emerald-500 h-full transition-all duration-500" style="width: 55%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span class="text-slate-400">Físico / Fuerza (FIS)</span>
+                                <span id="attrPhysical" class="text-emerald-400">60</span>
+                            </div>
+                            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                                <div id="barPhysical" class="bg-emerald-500 h-full transition-all duration-500" style="width: 60%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estadísticas Globales -->
+                <div class="glass-panel p-5 rounded-2xl space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-300 flex items-center">
+                            <i class="fa-solid fa-list-check text-amber-400 mr-2"></i> Estadísticas Globales
+                        </h3>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 text-center">
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                            <span class="text-[10px] text-slate-400 block uppercase font-bold">Partidos</span>
+                            <span id="statTotalApps" class="text-xl font-black text-slate-100">0</span>
+                        </div>
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                            <span class="text-[10px] text-slate-400 block uppercase font-bold">Goles</span>
+                            <span id="statTotalGoals" class="text-xl font-black text-emerald-400">0</span>
+                        </div>
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                            <span class="text-[10px] text-slate-400 block uppercase font-bold">Asistencias</span>
+                            <span id="statTotalAssists" class="text-xl font-black text-teal-400">0</span>
+                        </div>
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                            <span class="text-[10px] text-slate-400 block uppercase font-bold">Promedio Nota</span>
+                            <span id="statAvgRating" class="text-xl font-black text-amber-400">6.5</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/40 p-3.5 rounded-xl border border-slate-800/80 space-y-1 text-xs">
+                        <div class="flex justify-between text-slate-400">
+                            <span>Títulos Ganados:</span>
+                            <strong id="statTrophiesCount" class="text-amber-400">0 Títulos</strong>
+                        </div>
+                        <div class="flex justify-between text-slate-400">
+                            <span>Valor de Mercado:</span>
+                            <strong id="statMarketValue" class="text-emerald-400">€500,000</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Logros & Timeline -->
+                <div class="glass-panel p-5 rounded-2xl space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-300 flex items-center">
+                            <i class="fa-solid fa-award text-amber-400 mr-2"></i> Logros
+                        </h3>
+                        <span id="achievementsRatio" class="text-xs bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-bold">0/10</span>
+                    </div>
+
+                    <div id="achievementsMiniList" class="grid grid-cols-5 gap-2"></div>
+
+                    <div class="border-t border-slate-800 pt-3">
+                        <h4 class="text-xs font-bold text-slate-400 mb-2 uppercase">Historial Reciente</h4>
+                        <div id="hubCareerLog" class="space-y-2 max-h-36 overflow-y-auto pr-1 text-xs text-slate-300">
+                            <p class="text-slate-500 italic">Comienzas tu carrera en Franco's Academy.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SCREEN 3: MY REPRESENTATIVE -->
+        <section id="screenRepresentative" class="hidden space-y-6">
+            <div class="glass-panel p-6 rounded-2xl border border-violet-500/20">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-black text-slate-100 flex items-center"><i class="fa-solid fa-user-tie text-violet-400 mr-3"></i>Mi Representante</h2>
+                        <p id="repAdvice" class="text-sm text-slate-400 mt-1">Tu representante analizará tu situación deportiva y te avisará cuando haya oportunidades.</p>
+                    </div>
+                    <div id="repInboxStatus" class="bg-slate-900 px-4 py-3 rounded-xl border border-slate-800 text-right">
+                        <span class="text-[9px] text-slate-500 uppercase font-bold block">Bandeja</span><strong id="repInboxCount" class="text-emerald-400">0 novedades</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="glass-panel p-5 rounded-2xl">
+                    <h3 class="text-sm font-extrabold uppercase text-slate-300 border-b border-slate-800 pb-3"><i class="fa-solid fa-comments text-teal-400 mr-2"></i>Mensajes</h3>
+                    <div id="repMessagesList" class="space-y-3 mt-4"></div>
+                </div>
+                <div class="glass-panel p-5 rounded-2xl">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <h3 class="text-sm font-extrabold uppercase text-slate-300"><i class="fa-solid fa-handshake text-emerald-400 mr-2"></i>Ofertas de traspaso</h3>
+                        <span id="repOffersCount" class="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-full font-black">0</span>
+                    </div>
+                    <div id="repOffersList" class="space-y-3 mt-4"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN 4: LIFESTYLE & FINANCES -->
+        <section id="screenLifestyle" class="hidden space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900/80 p-5 rounded-2xl border border-slate-800">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-100 flex items-center">
+                        <i class="fa-solid fa-sack-dollar text-amber-400 mr-2"></i> Vida Personal & Finanzas Reales
+                    </h2>
+                    <p class="text-xs text-slate-400">Administra tus salarios profesionales reales y compra bienes de lujo.</p>
+                </div>
+                <div class="bg-slate-950 px-5 py-3 rounded-xl border border-emerald-500/30 text-right">
+                    <span class="text-[10px] text-slate-400 block uppercase font-bold">Saldo Bancario</span>
+                    <span id="lifestyleBank" class="text-2xl font-black text-emerald-400">€0</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="glass-panel p-5 rounded-2xl space-y-4">
+                    <h3 class="text-base font-extrabold text-slate-200 border-b border-slate-800 pb-3 flex items-center">
+                        <i class="fa-solid fa-champagne-glasses text-amber-400 mr-2"></i> Actividades & Fiestas
+                    </h3>
+
+                    <div class="space-y-3">
+                        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
+                            <div>
+                                <h4 class="font-bold text-sm text-slate-100">Fiesta Privada VIP en Discoteca</h4>
+                                <p class="text-xs text-slate-400 mt-0.5">Sube moral (+), pero arriesga tu físico y la prensa puede filtrarlo.</p>
+                                <span class="text-xs text-amber-400 font-bold block mt-1">Costo: €25,000</span>
+                            </div>
+                            <button onclick="app.buyActivity('party')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-4 py-2 rounded-lg text-xs uppercase transition">
+                                Organizar
+                            </button>
+                        </div>
+
+                        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
+                            <div>
+                                <h4 class="font-bold text-sm text-slate-100">Preparador Físico Personal</h4>
+                                <p class="text-xs text-slate-400 mt-0.5">Aumenta tu profesionalismo y reduce probabilidad de lesiones.</p>
+                                <span class="text-xs text-emerald-400 font-bold block mt-1">Costo: €80,000 / año</span>
+                            </div>
+                            <button onclick="app.buyActivity('trainer')" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-4 py-2 rounded-lg text-xs uppercase transition">
+                                Contratar
+                            </button>
+                        </div>
+
+                        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
+                            <div>
+                                <h4 class="font-bold text-sm text-slate-100">Chef & Fisioterapeuta Privado</h4>
+                                <p class="text-xs text-slate-400 mt-0.5">Mantiene tu físico impecable y optimiza recuperación.</p>
+                                <span class="text-xs text-teal-400 font-bold block mt-1">Costo: €60,000 / año</span>
+                            </div>
+                            <button onclick="app.buyActivity('chef')" class="bg-teal-500 hover:bg-teal-400 text-slate-950 font-black px-4 py-2 rounded-lg text-xs uppercase transition">
+                                Contratar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Realistic Luxury Shop -->
+                <div class="glass-panel p-5 rounded-2xl space-y-4">
+                    <h3 class="text-base font-extrabold text-slate-200 border-b border-slate-800 pb-3 flex items-center">
+                        <i class="fa-solid fa-car text-emerald-400 mr-2"></i> Garaje & Mansiones de Lujo
+                    </h3>
+
+                    <div id="lifestyleShopList" class="space-y-3 max-h-80 overflow-y-auto pr-1"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN 4: NEWS & TRANSFERS -->
+        <section id="screenNewsFeed" class="hidden space-y-6">
+            <div class="flex justify-between items-center bg-slate-900/80 p-5 rounded-2xl border border-slate-800">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-100 flex items-center">
+                        <i class="fa-solid fa-newspaper text-teal-400 mr-2"></i> Titulares de Prensa & Mercado
+                    </h2>
+                    <p class="text-xs text-slate-400">Entérate de los traspasos millonarios de tu liga y la prensa internacional.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="glass-panel p-5 rounded-2xl space-y-4">
+                    <h3 class="text-sm font-extrabold uppercase text-slate-300 border-b border-slate-800 pb-2 flex items-center">
+                        <i class="fa-solid fa-rss text-rose-400 mr-2"></i> Noticias Recientes de Tu Carrera
+                    </h3>
+                    <div id="newsFeedList" class="space-y-3 max-h-96 overflow-y-auto pr-2"></div>
+                </div>
+
+                <div class="glass-panel p-5 rounded-2xl space-y-4">
+                    <h3 class="text-sm font-extrabold uppercase text-slate-300 border-b border-slate-800 pb-2 flex items-center">
+                        <i class="fa-solid fa-arrow-right-arrow-left text-emerald-400 mr-2"></i> Fichajes Destacados de la Liga
+                    </h3>
+                    <div id="leagueTransfersList" class="space-y-3 max-h-96 overflow-y-auto pr-2"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN 5: CAREER HISTORY -->
+        <section id="screenCareerHistory" class="hidden space-y-6">
+            <div class="flex justify-between items-center">
+                <h2 class="text-2xl font-bold text-slate-100"><i class="fa-solid fa-history text-emerald-400 mr-2"></i>Historial de Temporadas</h2>
+                <button onclick="app.showScreen('seasonHub')" class="bg-slate-800 text-slate-300 text-xs font-bold px-4 py-2 rounded-xl hover:bg-slate-700">Volver al Hub</button>
+            </div>
+
+            <div class="glass-panel rounded-2xl overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-300">
+                        <thead class="bg-slate-900/90 text-xs uppercase text-slate-400 border-b border-slate-800">
+                            <tr>
+                                <th class="p-4">Año</th>
+                                <th class="p-4">Edad</th>
+                                <th class="p-4">Club</th>
+                                <th class="p-4">PJ</th>
+                                <th class="p-4">Goles</th>
+                                <th class="p-4">Asist.</th>
+                                <th class="p-4">Nota</th>
+                                <th class="p-4">OVR</th>
+                                <th class="p-4">Sueldo Anual</th>
+                                <th class="p-4">Títulos / Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableHistoryBody" class="divide-y divide-slate-800/50"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN 6: RETIREMENT CARD -->
+        <section id="screenRetirement" class="hidden space-y-8">
+            <div class="text-center space-y-2">
+                <span class="px-4 py-1.5 bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded-full text-xs font-bold uppercase tracking-widest">
+                    🏁 Fin de la Carrera Profesional
+                </span>
+                <h2 class="text-4xl font-black text-slate-100">Franco's Academy - Leyenda del Fútbol</h2>
+                <p class="text-sm text-slate-400 max-w-lg mx-auto">Te has retirado a los <span id="retireAge">38</span> años. Aquí está tu tarjeta oficial del Salón de la Fama.</p>
+            </div>
+
+            <div class="glass-panel max-w-5xl mx-auto p-6 rounded-2xl border border-amber-500/20">
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa-solid fa-book-open text-amber-400"></i>
+                    <h3 class="text-lg font-black text-slate-100">La historia de tu carrera</h3>
+                </div>
+                <p id="careerStory" class="text-sm text-slate-300 leading-7">Tu historia aparecerá aquí al terminar la carrera.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center max-w-5xl mx-auto">
+                <div class="flex justify-center">
+                    <div class="fut-card w-80 h-[460px] rounded-3xl p-6 flex flex-col justify-between text-amber-200 font-card tracking-wide shadow-2xl transform hover:scale-105 transition-all duration-300">
+                        <div class="flex justify-between items-start">
+                            <div class="text-center">
+                                <div id="cardOVR" class="text-6xl font-black leading-none text-amber-300">95</div>
+                                <div id="cardPos" class="text-2xl font-bold text-amber-400 uppercase tracking-wider">DEL</div>
+                                <div id="cardFlag" class="text-xl mt-1">🇦🇷</div>
+                            </div>
+                            <div class="w-32 h-32 rounded-full border-2 border-amber-400/50 bg-slate-900/80 flex items-center justify-center text-5xl text-amber-400 shadow-inner overflow-hidden">
+                                <i class="fa-solid fa-graduation-cap"></i>
+                            </div>
+                        </div>
+
+                        <div class="text-center border-t border-b border-amber-500/30 py-2">
+                            <h3 id="cardName" class="text-3xl font-extrabold text-amber-100 uppercase truncate">FRANCO ARMANI</h3>
+                            <p id="cardClub" class="text-xs font-sans text-amber-300 uppercase tracking-widest">Real Madrid</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-x-6 gap-y-1 text-xl font-bold border-b border-amber-500/30 pb-3">
+                            <div class="flex justify-between"><span>RIT</span><span id="cardPace" class="text-white">95</span></div>
+                            <div class="flex justify-between"><span>DRI</span><span id="cardDri" class="text-white">94</span></div>
+                            <div class="flex justify-between"><span>SHO</span><span id="cardSho" class="text-white">98</span></div>
+                            <div class="flex justify-between"><span>DEF</span><span id="cardDef" class="text-white">60</span></div>
+                            <div class="flex justify-between"><span>PAS</span><span id="cardPas" class="text-white">92</span></div>
+                            <div class="flex justify-between"><span>FIS</span><span id="cardPhy" class="text-white">90</span></div>
+                        </div>
+
+                        <div class="flex justify-between items-center text-xs font-sans text-amber-300/80">
+                            <span>FRANCO'S ACADEMY LEGEND</span>
+                            <span id="cardTrophiesTotal"><i class="fa-solid fa-trophy text-amber-400"></i> 18 Títulos</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-6 rounded-2xl space-y-6">
+                    <h3 class="text-xl font-extrabold text-slate-100 border-b border-slate-800 pb-3">
+                        <i class="fa-solid fa-book-bookmark text-amber-400 mr-2"></i> Legado Profesional
+                    </h3>
+
+                    <div class="grid grid-cols-2 gap-3 text-center">
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                            <span class="text-[10px] text-slate-400 block uppercase font-bold">Partidos Totales</span>
+                            <span id="retireApps" class="text-2xl font-black text-slate-100">720</span>
+                        </div>
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                            <span class="text-[10px] text-slate-400 block uppercase font-bold">Goles Totales</span>
+                            <span id="retireGoals" class="text-2xl font-black text-emerald-400">510</span>
+                        </div>
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                            <span class="text-[10px] text-slate-400 block uppercase font-bold">Asistencias</span>
+                            <span id="retireAssists" class="text-2xl font-black text-teal-400">220</span>
+                        </div>
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                            <span class="text-[10px] text-slate-400 block uppercase font-bold">Fortuna Final</span>
+                            <span id="retireBank" class="text-2xl font-black text-amber-400">€0</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 text-center">
+                        <div class="bg-amber-500/10 p-3 rounded-xl border border-amber-500/30">
+                            <span class="text-[10px] text-slate-400 block uppercase font-bold">GRL Máxima de Carrera</span>
+                            <span id="retirePeakOVR" class="text-2xl font-black text-amber-300">0</span>
+                        </div>
+                        <div class="bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/30">
+                            <span class="text-[10px] text-slate-400 block uppercase font-bold">Valor Máximo de Mercado</span>
+                            <span id="retirePeakValue" class="text-2xl font-black text-emerald-300">€0</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">Colección de Lujos:</h4>
+                        <div id="retireGarageList" class="flex flex-wrap gap-2 text-xs text-slate-300"></div>
+                    </div>
+
+                    <div class="pt-2 flex flex-col sm:flex-row gap-3">
+                        <button onclick="app.shareCard()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-100 font-bold py-3 px-4 rounded-xl text-sm transition flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-copy"></i>
+                            <span>Copiar Resumen</span>
+                        </button>
+                        <button onclick="app.confirmReset()" class="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3 px-4 rounded-xl text-sm transition flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-rotate-right"></i>
+                            <span>Nueva Carrera</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL: CONTRACT NEGOTIATION -->
+    <div id="modalCountryPicker" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-[80] flex items-center justify-center p-4 hidden">
+        <div class="glass-panel w-full max-w-3xl rounded-2xl p-5 border border-slate-700">
+            <div class="text-center mb-4">
+                <div class="globe-visual">🌍</div>
+                <h3 class="text-2xl font-black text-slate-100"><i class="fa-solid fa-earth-americas text-emerald-400 mr-2"></i>Elige tu país</h3>
+                <p class="text-xs text-slate-500">Pulsa un país de la bola del mundo para elegir tu nacionalidad.</p>
+                <button type="button" onclick="app.closeCountryPicker()" class="absolute top-5 right-5 p-2 bg-slate-800 rounded-lg text-slate-300"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <input id="countrySearch" oninput="app.filterCountries(this.value)" placeholder="Buscar país..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm mb-4 outline-none focus:border-emerald-500">
+            <div id="countryGrid" class="country-grid"></div>
+        </div>
+    </div>
+
+    <div id="modalNegotiation" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-[60] flex items-center justify-center p-4 hidden">
+        <div class="glass-panel max-w-xl w-full p-6 rounded-2xl border border-emerald-500/30 shadow-2xl space-y-5">
+            <div class="flex justify-between items-start gap-4">
+                <div>
+                    <span class="text-[10px] uppercase font-bold tracking-widest text-emerald-400">Negociación de contrato</span>
+                    <h3 id="negClub" class="text-2xl font-black text-slate-100">Club</h3>
+                    <p id="negOfferType" class="text-xs text-slate-400 mt-1">Contrato permanente</p>
+                </div>
+                <button onclick="app.closeNegotiation()" class="text-slate-500 hover:text-slate-200"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="bg-slate-900 rounded-xl p-4 border border-slate-800">
+                <div class="flex justify-between items-center mb-2"><span class="text-xs font-bold text-slate-300 uppercase">Tensión de negociación</span><strong id="negTensionText" class="text-amber-400">50%</strong></div>
+                <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden"><div id="negTensionBar" class="h-full transition-all duration-300" style="width:50%"></div></div>
+                <p id="negTensionHint" class="text-[11px] text-slate-400 mt-2">Cuanto más aprietes, más puede mejorar el contrato, pero también aumenta el riesgo de rechazo.</p>
+            </div>
+            <div class="grid grid-cols-2 gap-3 text-xs">
+                <div class="bg-slate-900/70 p-3 rounded-xl border border-slate-800"><span class="text-slate-500 block">Sueldo propuesto</span><strong id="negSalary" class="text-emerald-400 text-lg">€0/año</strong></div>
+                <div class="bg-slate-900/70 p-3 rounded-xl border border-slate-800"><span class="text-slate-500 block">Rol</span><strong id="negRole" class="text-amber-400 text-lg">Rotación</strong></div>
+            </div>
+            <div class="bg-slate-900/70 p-4 rounded-xl border border-slate-800">
+                <label class="text-xs font-bold text-slate-300 uppercase block mb-2">Tu petición salarial</label>
+                <div class="flex gap-2">
+                    <input id="negRequestedSalary" type="number" min="1" step="5000" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-emerald-300 font-black outline-none focus:border-emerald-500" placeholder="Ej: 2500000">
+                    <button onclick="app.submitSalaryRequest()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-5 rounded-xl text-sm uppercase">Enviar petición</button>
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2">Puedes pedir cualquier cantidad. El club decidirá si acepta o rechaza la propuesta.</p>
+            </div>
+            <button onclick="app.negotiateContract('accept')" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3 rounded-xl text-sm uppercase">Aceptar oferta inicial</button>
+            <p id="negStatus" class="text-center text-xs text-slate-400 min-h-[18px]"></p>
+        </div>
+    </div>
+
+    <!-- MODAL: RUEDA DE PRENSA -->
+    <div id="modalPressConference" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-[55] flex items-center justify-center p-4 hidden">
+        <div class="glass-panel max-w-xl w-full p-6 rounded-2xl border border-blue-500/30 shadow-2xl space-y-5">
+            <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
+                <div class="bg-blue-500/10 p-3 rounded-xl text-blue-400"><i class="fa-solid fa-microphone-lines text-2xl"></i></div>
+                <div><span class="text-[10px] uppercase font-bold tracking-widest text-blue-400">Rueda de prensa</span><h3 class="text-2xl font-black">Los periodistas te preguntan</h3></div>
+            </div>
+            <p id="pressQuestion" class="text-lg font-bold text-slate-100"></p>
+            <div id="pressOptions" class="space-y-3"></div>
+            <p class="text-[10px] text-slate-500 text-center">Tu respuesta puede mejorar o perjudicar tu moral, reputación y relación con el club.</p>
+        </div>
+    </div>
+
+    <!-- MODAL: UNEXPECTED EVENT POPUP -->
+    <div id="modalUnexpectedEvent" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-panel max-w-lg w-full p-6 rounded-2xl border border-amber-500/40 shadow-2xl space-y-5">
+            <div class="flex items-center space-x-3 text-amber-400 border-b border-slate-800 pb-3">
+                <i id="eventIcon" class="fa-solid fa-bolt text-2xl"></i>
+                <div>
+                    <span class="text-[10px] uppercase font-bold tracking-widest text-amber-500">Evento Inesperado de la Temporada</span>
+                    <h3 id="eventTitle" class="text-xl font-black text-slate-100">Título del Evento</h3>
+                </div>
+            </div>
+
+            <p id="eventDescription" class="text-sm text-slate-300 leading-relaxed">Descripción del evento...</p>
+
+            <div id="eventImpactBadge" class="p-3 bg-slate-900 rounded-xl border border-slate-800 text-xs font-bold text-emerald-400">
+                Impacto: +2 OVR
+            </div>
+            <div id="eventChoices" class="space-y-2"></div>
+
+            <button id="eventContinueButton" onclick="document.getElementById('modalUnexpectedEvent').classList.add('hidden')" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3 rounded-xl text-sm uppercase transition">
+                Continuar Temporada
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL: DYNAMIC TRANSFERS -->
+    <div id="modalTransfers" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-panel max-w-2xl w-full p-6 rounded-2xl border border-slate-700 shadow-2xl space-y-6">
+            <div class="text-center">
+                <span class="text-xs font-bold text-amber-400 uppercase tracking-widest bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">Ventana de Mercados & Fichajes</span>
+                <h3 class="text-2xl font-black text-slate-100 mt-1">Ofertas Recibidas</h3>
+                <p class="text-xs text-slate-400">Basadas en tu rendimiento, minutos y nivel actual de OVR:</p>
+            </div>
+
+            <div id="transferOffersList" class="space-y-3 max-h-72 overflow-y-auto pr-2"></div>
+
+            <div class="flex justify-end pt-2">
+                <button onclick="app.stayAtCurrentClub()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold px-6 py-3 rounded-xl text-sm transition">
+                    Quedarse en <span id="stayClubName" class="text-amber-400">Club</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: TITULOS GANADOS -->
+    <div id="modalTitles" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-panel max-w-md w-full p-6 rounded-2xl border border-amber-500/40 shadow-2xl space-y-5 text-center">
+            <span class="text-xs font-bold text-amber-400 uppercase tracking-widest bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">¡Campeón!</span>
+            <div id="titlesWon" class="flex flex-wrap justify-center gap-5"></div>
+            <button onclick="document.getElementById('modalTitles').classList.add('hidden')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-6 py-3 rounded-xl text-sm uppercase tracking-wider transition">Celebrar</button>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+
+    <script>
+        class SoundController {
+            constructor() {
+                this.enabled = true;
+                this.ctx = null;
+            }
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioCtx();
+                }
+            }
+            toggle() {
+                this.enabled = !this.enabled;
+                const icon = document.getElementById('soundIcon');
+                if (this.enabled) {
+                    icon.className = "fa-solid fa-volume-high";
+                    this.playUnlock();
+                } else {
+                    icon.className = "fa-solid fa-volume-xmark";
+                }
+            }
+            playClick() {
+                if (!this.enabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, this.ctx.currentTime + 0.05);
+                gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.05);
+            }
+            playUnlock() {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.setValueAtTime(659.25, now + 0.1);
+                osc.frequency.setValueAtTime(783.99, now + 0.2);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(now + 0.4);
+            }
+        }
+
+        const audioManager = new SoundController();
+
+        // Ligas reales (ordenadas de mayor a menor nivel). Para ampliar plantillas, añade nombres a las listas.
+        const LEAGUES = [
+            { n: 'La Liga Española', top: 95, cup: 'Copa del Rey', c: 'eu', d2n: 'Segunda División',
+              d1: 'Real Madrid|FC Barcelona|Atlético de Madrid|Athletic Club|Real Sociedad|Villarreal CF|Real Betis|Sevilla FC|Valencia CF|Girona FC|Celta de Vigo|Rayo Vallecano|RCD Mallorca|CA Osasuna',
+              d2: 'Real Zaragoza|Málaga CF|Deportivo La Coruña|Sporting de Gijón|Racing de Santander|CD Lugo|Granada CF|Cádiz CF' },
+            { n: 'Premier League', top: 95, cup: 'FA Cup', c: 'eu', d2n: 'Championship',
+              d1: 'Manchester City|Liverpool FC|Arsenal|Chelsea|Manchester United|Tottenham Hotspur|Newcastle United|Aston Villa|West Ham United|Brighton|Crystal Palace|Everton|Fulham|Wolverhampton',
+              d2: 'Leeds United|Leicester City|Southampton|Norwich City|Middlesbrough|West Bromwich Albion|Coventry City|Swansea City' },
+            { n: 'Serie A Italia', top: 93, cup: 'Coppa Italia', c: 'eu', d2n: 'Serie B',
+              d1: 'Inter de Milán|AC Milan|Juventus|Napoli|Atalanta|AS Roma|Lazio|Fiorentina|Bologna|Torino FC|Genoa|Udinese|Cagliari|Hellas Verona',
+              d2: 'Sampdoria|Palermo|Spezia Calcio|Bari|Cremonese|Venezia|Brescia|Pisa' },
+            { n: 'Bundesliga', top: 94, cup: 'DFB-Pokal', c: 'eu', d2n: '2. Bundesliga',
+              d1: 'Bayern München|Bayer Leverkusen|Borussia Dortmund|RB Leipzig|Eintracht Frankfurt|VfB Stuttgart|Borussia Mönchengladbach|VfL Wolfsburg|SC Freiburg|Werder Bremen|TSG Hoffenheim|FC Augsburg|Mainz 05|Union Berlin',
+              d2: 'Hamburger SV|Schalke 04|Hertha BSC|Hannover 96|Fortuna Düsseldorf|1. FC Nürnberg|Karlsruher SC|Kaiserslautern' },
+            { n: 'Ligue 1', top: 91, cup: 'Coupe de France', c: 'eu', d2n: 'Ligue 2',
+              d1: 'Paris Saint-Germain|Olympique de Marsella|AS Monaco|Olympique de Lyon|LOSC Lille|OGC Niza|Stade Rennais|RC Lens|Stade de Reims|RC Strasbourg|FC Nantes|Montpellier HSC|Toulouse FC|Stade Brestois',
+              d2: 'AS Saint-Étienne|Girondins de Burdeos|FC Metz|Le Havre AC|AJ Auxerre|SM Caen|Amiens SC|Paris FC' },
+            { n: 'Liga Portugal', top: 86, cup: 'Taça de Portugal', c: 'eu', d2n: 'Liga Portugal 2',
+              d1: 'Benfica|FC Porto|Sporting CP|SC Braga|Vitória de Guimarães|Boavista|Rio Ave|Gil Vicente|Famalicão|Estoril',
+              d2: 'Belenenses|Marítimo|Nacional|Académica|Vizela|Leixões' },
+            { n: 'Eredivisie', top: 84, cup: 'KNVB Beker', c: 'eu', d2n: 'Eerste Divisie',
+              d1: 'Ajax|PSV Eindhoven|Feyenoord|AZ Alkmaar|FC Twente|FC Utrecht|Sparta Rotterdam|Heerenveen|Go Ahead Eagles|Vitesse',
+              d2: 'Roda JC|ADO Den Haag|NAC Breda|Willem II|De Graafschap|Cambuur' },
+            { n: 'Liga Profesional Argentina', top: 85, cup: 'Copa Argentina', c: 'sa', d2n: 'Primera Nacional',
+              d1: 'River Plate|Boca Juniors|Racing Club|Independiente|San Lorenzo|Estudiantes de La Plata|Vélez Sarsfield|Talleres|Rosario Central|Newell\'s Old Boys|Lanús|Argentinos Juniors|Huracán|Banfield',
+              d2: 'Quilmes|Chacarita Juniors|Ferro Carril Oeste|Almirante Brown|Deportivo Merlo|Sacachispas|Nueva Chicago|Temperley' },
+            { n: 'Brasileirão', top: 87, cup: 'Copa do Brasil', c: 'sa', d2n: 'Brasileirão Série B',
+              d1: 'Flamengo|Palmeiras|Botafogo|Fluminense|São Paulo|Corinthians|Atlético Mineiro|Grêmio|Internacional|Cruzeiro|Santos|Vasco da Gama|Bahia|Athletico Paranaense',
+              d2: 'Coritiba|Goiás|Sport Recife|Ceará|América Mineiro|Vitória|Náutico|Avaí' }
+        ];
+
+        const CLUB_DATABASE = { tier1: [], tier2: [], tier3: [], tier4: [] };
+        LEAGUES.forEach(L => {
+            const put = (name, league, rep, div) => {
+                const t = rep >= 88 ? 'tier1' : rep >= 78 ? 'tier2' : rep >= 66 ? 'tier3' : 'tier4';
+                CLUB_DATABASE[t].push({ name, league, rep, div, lg: L.n });
+            };
+            const a = L.d1.split('|'), b = L.d2.split('|');
+            a.forEach((n, i) => put(n, L.n, Math.round(L.top - i * (L.top - 66) / (a.length - 1)), 1));
+            b.forEach((n, i) => put(n, L.d2n, Math.round(64 - i * 1.2), 2));
+        });
+
+        // Trofeos: colores para dibujar cada copa (SVG integrado, sin imágenes externas)
+        const TROPHY_STYLE = {
+            lg1: { c: '#fbbf24', d: '#b45309', x: '<path d="M24 12l1.5 3 3.3.4-2.4 2.3.6 3.3-3-1.6-3 1.6.6-3.3-2.4-2.3 3.3-.4z" fill="#fff8"/>' },
+            lg2: { c: '#d6a26b', d: '#7c4a1e' },
+            cup: { c: '#e2e8f0', d: '#64748b' },
+            cl:  { c: '#93c5fd', d: '#1d4ed8', x: '<circle cx="24" cy="15" r="7" fill="none" stroke="#fff" stroke-width="1.5"/>' },
+            el:  { c: '#fdba74', d: '#c2410c' },
+            lib: { c: '#86efac', d: '#15803d', x: '<path d="M18 11h12" stroke="#fff" stroke-width="2"/>' }
+        };
+        function trophySVG(k, size = 48) {
+            const t = TROPHY_STYLE[k] || TROPHY_STYLE.cup;
+            return `<svg width="${size}" height="${size}" viewBox="0 0 48 48" aria-hidden="true"><path d="M14 6h20v12a10 10 0 0 1-20 0z" fill="${t.c}"/><path d="M14 9H8v3a7 7 0 0 0 7 7M34 9h6v3a7 7 0 0 1-7 7" fill="none" stroke="${t.c}" stroke-width="2.5"/><rect x="21" y="27" width="6" height="8" fill="${t.c}"/><rect x="14" y="35" width="20" height="6" rx="1.5" fill="${t.d}"/>${t.x || ''}</svg>`;
+        }
+
+        const REALISTIC_LUXURY_SHOP = [
+            { id: 'car_utility', name: 'Auto Sedán Deportivo', cost: 45000, type: 'car', icon: 'fa-car' },
+            { id: 'car_sports', name: 'Porsche 911 GT3 RS', cost: 260000, type: 'car', icon: 'fa-car-side' },
+            { id: 'car_super', name: 'Ferrari SF90 Stradale', cost: 650000, type: 'car', icon: 'fa-gauge-high' },
+            { id: 'watch_rolex', name: 'Rolex Daytona Oro Rosa', cost: 85000, type: 'jewel', icon: 'fa-stopwatch' },
+            { id: 'mansion_penthouse', name: 'Penthouse VIP en Madrid/Londres', cost: 2200000, type: 'house', icon: 'fa-building' },
+            { id: 'mansion_villa', name: 'Mansión con Cancha & Heliperfil', cost: 8500000, type: 'house', icon: 'fa-house-chimney-window' }
+        ];
+
+        const ACHIEVEMENTS = [
+            { id: 'debut', title: 'Debutante', desc: 'Juega tu primer partido oficial', icon: 'fa-shoe-prints' },
+            { id: 'first_goal', title: 'Romperedes', desc: 'Anota 10 goles profesionales', icon: 'fa-futbol' },
+            { id: 'trophy', title: 'Campeón', desc: 'Levanta un título oficial', icon: 'fa-trophy' },
+            { id: 'starter', title: 'Titular Indiscutido', desc: 'Gánate el puesto en el XI', icon: 'fa-user-check' },
+            { id: 'dream_league', title: 'Sueño Cumplido', desc: 'Ficha por tu liga soñada', icon: 'fa-star' },
+            { id: 'rich', title: 'Multi-Millonario', desc: 'Acumula €5,000,000 en el banco', icon: 'fa-sack-dollar' },
+            { id: 'supercar', title: 'Superdeportivo', desc: 'Compra un auto de alta gama', icon: 'fa-car-side' },
+            { id: 'giant_club', title: 'Estrella Elite', desc: 'Ficha por un Gigante Tier 1', icon: 'fa-crown' },
+            { id: 'ballon_dor', title: 'Clase Mundial', desc: 'Llega a 88+ OVR', icon: 'fa-award' },
+            { id: 'legend', title: 'Salón de la Fama', desc: 'Retírate como leyenda a los 38', icon: 'fa-monument' }
+        ];
+
+        // Países completos mediante códigos ISO 3166-1 alpha-2.
+        const COUNTRY_CODES = `AF AL DZ AS AD AO AG AR AM AU AT AZ BS BH BD BB BY BE BZ BJ BT BO BA BW BR BN BG BF BI CV KH CM CA CF TD CL CN CO KM CG CD CR CI HR CU CY CZ DK DJ DM DO EC EG SV GQ ER EE SZ ET FJ FI FR GA GM GE DE GH GR GD GT GN GW GY HT HN HU IS IN ID IR IQ IE IL IT JM JP JO KZ KE KI KP KR KW KG LA LV LB LS LR LY LI LT LU MG MW MY MV ML MT MH MR MU MX FM MD MC MN ME MA MZ MM NA NR NP NL NZ NI NE NG MK NO OM PK PW PS PA PG PY PE PH PL PT QA RO RU RW KN LC VC WS SM ST SA SN RS SC SL SG SK SI SB SO ZA SS ES LK SD SR SE CH SY TW TJ TZ TH TL TG TO TT TN TR TM TV UG UA AE GB US UY UZ VU VA VE VN YE ZM ZW`.split(/\s+/);
+        const COUNTRY_NAME_OVERRIDES = {
+            GB:'Reino Unido', US:'Estados Unidos', KR:'Corea del Sur', KP:'Corea del Norte', CZ:'Chequia', CV:'Cabo Verde', CI:'Costa de Marfil', CD:'República Democrática del Congo', CG:'República del Congo', SZ:'Esuatini', FM:'Micronesia', VA:'Ciudad del Vaticano', PS:'Palestina', TW:'Taiwán', BO:'Bolivia', VE:'Venezuela', LA:'Laos', MD:'Moldavia', TZ:'Tanzania', VN:'Vietnam', RU:'Rusia', TR:'Turquía', IR:'Irán', SY:'Siria', MM:'Myanmar', BN:'Brunéi', XK:'Kosovo'
+        };
+        const regionNames = new Intl.DisplayNames(['es'], {type:'region'});
+        const flagForCode = code => code.replace(/./g, ch => String.fromCodePoint(ch.charCodeAt(0)+127397));
+        const COUNTRIES = COUNTRY_CODES.map(code => ({ code, name: COUNTRY_NAME_OVERRIDES[code] || regionNames.of(code), flag: flagForCode(code) }))
+            .filter(c => c.name).sort((a,b)=>a.name.localeCompare(b.name,'es'));
+
+
+        class FootballCareerApp {
+            constructor() {
+                this.player = null;
+                this.unlockedAchievements = new Set();
+                this.history = [];
+                this.currentYear = 2026;
+                this.newsList = [];
+                this.leagueTransfers = [];
+                this.activeInjury = null;
+                this.mobileMode = localStorage.getItem('franco_mobile_mode') === 'true';
+            }
+
+            init() {
+                this.applyMobileMode();
+                this.loadSaveGame();
+                if (this.player) {
+                    this.updateUI();
+                    this.showScreen('seasonHub');
+                } else {
+                    this.showScreen('creation');
+                }
+                this.renderAchievementsMini();
+            }
+
+            toggleMobileMode(enabled) {
+                this.mobileMode = !!enabled;
+                localStorage.setItem('franco_mobile_mode', this.mobileMode ? 'true' : 'false');
+                this.applyMobileMode();
+                this.toast(this.mobileMode ? 'Modo móvil activado' : 'Modo ordenador activado', this.mobileMode ? 'Interfaz preparada para jugar con el teléfono.' : 'Interfaz estándar restaurada.');
+            }
+
+            applyMobileMode() {
+                document.body.classList.toggle('mobile-mode', !!this.mobileMode);
+                const toggle = document.getElementById('mobileModeToggle');
+                if (toggle) toggle.checked = !!this.mobileMode;
+            }
+
+            openCountryPicker() {
+                this.renderCountries();
+                document.getElementById('modalCountryPicker').classList.remove('hidden');
+                setTimeout(() => document.getElementById('countrySearch')?.focus(), 50);
+            }
+            closeCountryPicker() { document.getElementById('modalCountryPicker').classList.add('hidden'); }
+            filterCountries(query) { this.renderCountries(query); }
+            renderCountries(query='') {
+                const grid=document.getElementById('countryGrid'); if(!grid) return;
+                const q=query.trim().toLowerCase();
+                grid.innerHTML=COUNTRIES.filter(c=>!q || c.name.toLowerCase().includes(q)).map(c=>`<button type="button" class="country-option" onclick="app.selectCountry('${c.name.replace(/'/g,"\\'")}','${c.flag}')">${c.flag} ${c.name}</button>`).join('');
+            }
+            selectCountry(name, flag) {
+                document.getElementById('inputNationality').value=name;
+                document.getElementById('selectedCountryLabel').innerText=`${flag} ${name}`;
+                this.closeCountryPicker();
+            }
+            selectPosition(code, label, btn) {
+                document.getElementById('inputPosition').value=code;
+                document.getElementById('selectedPositionLabel').innerText=`${code} · ${label}`;
+                document.getElementById('positionPickerHint').innerText=`${code} seleccionado`;
+                document.querySelectorAll('.position-dot').forEach(b=>b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+            focusPositionPicker() { document.getElementById('positionPicker')?.scrollIntoView({behavior:'smooth',block:'center'}); }
+
+            showScreen(screenId) {
+                audioManager.playClick();
+                document.getElementById('screenCreation').classList.add('hidden');
+                document.getElementById('screenSeasonHub').classList.add('hidden');
+                document.getElementById('screenLifestyle').classList.add('hidden');
+                document.getElementById('screenNewsFeed').classList.add('hidden');
+                document.getElementById('screenCareerHistory').classList.add('hidden');
+                document.getElementById('screenRepresentative').classList.add('hidden');
+                document.getElementById('screenRetirement').classList.add('hidden');
+
+                if (screenId === 'creation') document.getElementById('screenCreation').classList.remove('hidden');
+                if (screenId === 'seasonHub') document.getElementById('screenSeasonHub').classList.remove('hidden');
+                if (screenId === 'lifestyle') {
+                    this.renderLifestyleShop();
+                    document.getElementById('screenLifestyle').classList.remove('hidden');
+                }
+                if (screenId === 'newsFeed') {
+                    this.renderNewsFeed();
+                    document.getElementById('screenNewsFeed').classList.remove('hidden');
+                }
+                if (screenId === 'careerHistory') {
+                    this.renderHistoryTable();
+                    document.getElementById('screenCareerHistory').classList.remove('hidden');
+                }
+                if (screenId === 'representative') {
+                    this.renderRepresentative();
+                    this.markRepresentativeRead();
+                    document.getElementById('screenRepresentative').classList.remove('hidden');
+                }
+                if (screenId === 'retirement') document.getElementById('screenRetirement').classList.remove('hidden');
+            }
+
+            // Calculate realistic salaries based on OVR & Club Tier
+            calculateRealisticSalary(ovr, rep) {
+                // Sueldo anual orientativo en bruto. El presupuesto del club limita los excesos.
+                const base = ovr < 65 ? 30000 + Math.random()*30000 :
+                    ovr < 72 ? 120000 + (ovr-65)*50000 :
+                    ovr < 78 ? 500000 + (ovr-72)*150000 :
+                    ovr < 84 ? 1500000 + (ovr-78)*500000 :
+                    ovr < 88 ? 4500000 + (ovr-84)*1200000 :
+                    ovr < 92 ? 9300000 + (ovr-88)*2200000 :
+                    18100000 + (ovr-92)*3000000;
+                const clubFactor = rep >= 92 ? 1.15 : rep >= 88 ? 1.0 : rep >= 82 ? 0.78 : rep >= 75 ? 0.55 : rep >= 68 ? 0.32 : 0.18;
+                const cap = rep >= 92 ? 45000000 : rep >= 88 ? 25000000 : rep >= 82 ? 14000000 : rep >= 75 ? 7000000 : rep >= 68 ? 2200000 : 900000;
+                return Math.round(Math.min(cap, Math.max(28000, base * clubFactor)) / 5000) * 5000;
+            }
+
+            calculateMarketValue(ovr) {
+                if (ovr < 65) return 250000;
+                if (ovr < 72) return Math.round((ovr - 60) * 400000);
+                if (ovr < 78) return Math.round(5000000 + (ovr - 72) * 2500000);
+                if (ovr < 84) return Math.round(20000000 + (ovr - 78) * 8000000);
+                if (ovr < 90) return Math.round(70000000 + (ovr - 84) * 15000000);
+                return Math.round(150000000 + (ovr - 90) * 25000000);
+            }
+
+            randomCareer() {
+                const names=['Adrián Valcero','Nicolás Varela','Mateo Ferrán','Bruno Salvat','Luca Montiel','Thiago Roldán','Iker Valdés','Marco Bellori','Damián Soria','Enzo Maraldi','Gael Novaro','Sandro Velmont','Leo Arvén','Matías Corven','Álex Terenzo'];
+                const fictionalCountries=['Valdoria','Montelvia','Lunaria','Bravonia','Esteria','Norvessa','Caledria','Ravencia','Solvaria','Terenia','Velmora','Asteria'];
+                const fictionalPositions=[
+                    ['VLE','Volante Eclipse','MC'],['PDA','Punta de Área','DC'],['AE','Ala Eléctrica','ED'],['AC','Ala de Control','EI'],
+                    ['OM','Organizador Móvil','MCO'],['CR','Cierre Rápido','DFC'],['PB','Pivote Blindado','MCD'],['LFA','Lateral de Fondo Alto','LD'],
+                    ['LFI','Lateral de Fondo Izq.','LI'],['GAC','Guardameta de Área Corta','POR'],['SNP','Segundo Nexo de Presión','SD']
+                ];
+                const n=names[Math.floor(Math.random()*names.length)];
+                const c=fictionalCountries[Math.floor(Math.random()*fictionalCountries.length)];
+                const pos=fictionalPositions[Math.floor(Math.random()*fictionalPositions.length)];
+                document.getElementById('inputShirtNumber').value = String(Math.floor(Math.random()*99)+1);
+                document.getElementById('inputName').value=n;
+                document.getElementById('inputNationality').value=c;
+                document.getElementById('selectedCountryLabel').innerText=`🌍 ${c}`;
+                document.getElementById('inputPosition').value=pos[2];
+                document.getElementById('selectedPositionLabel').innerText=`${pos[0]} · ${pos[1]}`;
+                document.querySelectorAll('.position-dot').forEach(b=>b.classList.toggle('active', b.dataset.position===pos[2]));
+                this._randomCareerPositionName=pos[1];
+                document.getElementById('formCreation').requestSubmit();
+            }
+
+            generateRandomFaceTraits() {
+                const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+                return {
+                    skin: pick(['#f1c7a5','#d9a477','#b9784f','#8f573b','#6b3f2c']),
+                    hair: pick(['#17120f','#2b1a12','#4b2f20','#6b452d','#8b6a4a','#25252a']),
+                    hairStyle: pick(['short','fade','curly','crop','long']),
+                    eyes: pick(['#3b2b24','#4b3621','#2f4f4f','#202020','#6b4b2a']),
+                    beard: pick(['none','none','stubble','beard']),
+                    eyebrow: pick(['straight','arched','thick']),
+                    nose: pick(['small','normal','strong']),
+                    face: pick(['oval','round','angular']),
+                    accent: pick(['#34d399','#22c55e','#14b8a6','#f59e0b','#60a5fa'])
+                };
+            }
+            generateFaceSVG(traits={}) {
+                const t=traits;
+                const hair = t.hairStyle==='long'
+                    ? `<path d="M14 37 Q12 18 50 14 Q88 18 86 37 L79 54 L72 34 Q62 26 50 29 Q37 26 28 34 L21 54Z" fill="${t.hair}"/>`
+                    : t.hairStyle==='curly'
+                    ? `<path d="M17 37 Q12 14 50 12 Q88 14 83 37 Q77 28 70 30 Q63 20 55 29 Q46 18 39 29 Q29 20 23 34Z" fill="${t.hair}"/>`
+                    : `<path d="M18 38 Q14 15 50 14 Q86 15 82 38 Q72 27 50 29 Q29 27 18 38Z" fill="${t.hair}"/>`;
+                const beard = t.beard==='none' ? '' : t.beard==='stubble'
+                    ? `<path d="M28 56 Q50 72 72 56 Q69 76 50 78 Q31 76 28 56Z" fill="${t.hair}" opacity=".38"/>`
+                    : `<path d="M27 56 Q50 69 73 56 L68 75 Q50 84 32 75Z" fill="${t.hair}"/>`;
+                const faceRx=t.face==='round'?25:t.face==='angular'?22:24;
+                const facePath=`<path d="M50 20 C${50-faceRx} 20 ${50-faceRx-3} 42 30 53 Q32 75 50 80 Q68 75 70 53 C${50+faceRx+3} 42 ${50+faceRx} 20 50 20Z" fill="${t.skin}"/>`;
+                const nose = t.nose==='small'?'M50 43 L47 55 L51 57':t.nose==='strong'?'M50 41 L45 56 L52 59':'M50 43 L47 56 L52 58';
+                const brow = t.eyebrow==='thick'?3:2;
+                return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" aria-label="Cara del jugador">
+                    <defs><linearGradient id="bg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="${t.accent}"/><stop offset="1" stop-color="#0f172a"/></linearGradient></defs>
+                    <rect width="100" height="100" rx="20" fill="url(#bg)"/>
+                    <path d="M22 100 Q25 76 50 73 Q75 76 78 100Z" fill="#172033"/>
+                    ${facePath}${hair}
+                    <path d="M32 43 Q40 38 45 42" stroke="#241912" stroke-width="${brow}" stroke-linecap="round" fill="none"/><path d="M55 42 Q61 38 68 43" stroke="#241912" stroke-width="${brow}" stroke-linecap="round" fill="none"/>
+                    <ellipse cx="40" cy="48" rx="3" ry="2.2" fill="${t.eyes}"/><ellipse cx="60" cy="48" rx="3" ry="2.2" fill="${t.eyes}"/>
+                    <path d="${nose}" stroke="#8a5539" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path d="M42 65 Q50 69 58 65" stroke="#6e3028" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    ${beard}
+                </svg>`;
+            }
+            renderPlayerFace() {
+                const el=document.getElementById('hubFace'); if(!el||!this.player)return;
+                el.innerHTML=this.generateFaceSVG(this.player.faceTraits||this.generateRandomFaceTraits());
+                el.style.borderColor=(this.player.faceTraits?.accent||'#34d399')+'99';
+            }
+
+            createPlayer(e) {
+                e.preventDefault();
+                audioManager.playUnlock();
+
+                const name = document.getElementById('inputName').value.trim();
+                const nationality = document.getElementById('inputNationality').value;
+                const position = document.getElementById('inputPosition').value;
+                const shirtNumber = Math.max(1, Math.min(99, parseInt(document.getElementById('inputShirtNumber').value || '10', 10)));
+                const targetLeague = document.getElementById('inputTargetLeague').value;
+
+                const randomClub = CLUB_DATABASE.tier4[Math.floor(Math.random() * CLUB_DATABASE.tier4.length)];
+
+                let stats = { pace: 62, shooting: 60, passing: 58, dribbling: 62, defense: 50, physical: 60 };
+                const positionBoosts = {
+                    POR:{defense:10,physical:4}, LI:{pace:3,defense:8,passing:3}, DFC:{defense:13,physical:7}, LD:{pace:3,defense:8,passing:3},
+                    MCD:{defense:7,passing:7,physical:3}, MC:{passing:8,dribbling:3}, MCO:{passing:9,dribbling:5}, EI:{pace:5,dribbling:6,shooting:3},
+                    ED:{pace:5,dribbling:6,shooting:3}, SD:{shooting:5,dribbling:5,pace:3}, DC:{shooting:7,pace:4,physical:2}
+                };
+                Object.entries(positionBoosts[position] || {}).forEach(([stat, boost]) => stats[stat] += boost);
+
+                const initialOVR = this.calculateOVR(stats);
+                const salary = this.calculateRealisticSalary(initialOVR, randomClub.rep);
+                const environment = this.createClubEnvironment(randomClub);
+
+                this.player = {
+                    name,
+                    nationality,
+                    position,
+                    positionName: this._randomCareerPositionName || document.getElementById('selectedPositionLabel').innerText.split(' · ')[1] || position,
+                    positionCode: position,
+                    shirtNumber,
+                    targetLeague,
+                    club: randomClub.name,
+                    league: randomClub.league,
+                    age: 16,
+                    salary,
+                    bank: 0,
+                    squadRole: 'Rotación',
+                    personality: 'Promesa Profesional',
+                    energy: 100,
+                    morale: 'Alta',
+                    injuryRisk: 2,
+                    stats,
+                    ovr: initialOVR,
+                    peakOVR: initialOVR,
+                    peakMarketValue: this.calculateMarketValue(initialOVR),
+                    peakStats: { ...stats },
+                    totals: { apps: 0, goals: 0, assists: 0, trophies: 0, avgRating: 6.5 },
+                    form: 6.5,
+                    lastSeasonApps: 0,
+                    inventory: [],
+                    clubsHistory: [randomClub.name],
+                    pressConferenceCount: 0,
+                    askedPressQuestions: [],
+                    careerPeakOVR: initialOVR,
+                    careerPeakMarketValue: this.calculateMarketValue(initialOVR),
+                    careerPeakStats: { ...stats },
+                    careerPeakClub: randomClub.name,
+                    development: environment,
+                    repMessages: [],
+                    repOffers: [],
+                    repUnread: false,
+                    seasonCount: 0,
+                    faceSeed: Math.floor(Math.random()*2147483647),
+                    faceTraits: this.generateRandomFaceTraits()
+                };
+
+                this._randomCareerPositionName = null;
+                this.currentYear = 2026;
+                this.history = [];
+                this.unlockedAchievements = new Set();
+                this.newsList = [`${this.player.name} firma su primer contrato profesional juvenil con ${randomClub.name}.`];
+                this.player.repMessages = [`He preparado tu primer informe: vamos a vigilar tus minutos, el nivel del club y la calidad del entorno de desarrollo.`];
+
+                document.getElementById('appNavigation').classList.remove('hidden');
+                this.saveGame();
+                this.updateUI();
+                this.showScreen('seasonHub');
+                this.toast('¡Carrera Iniciada!', `Te has unido a ${randomClub.name} con un sueldo de ${this.formatMoney(salary)}/año.`);
+            }
+
+            createClubEnvironment(club) {
+                // Entorno estable y ligado a la infraestructura real del club; no es un dado.
+                const rep = club?.rep || 60;
+                const name = club?.name || '';
+                const elite = ['Real Madrid','FC Barcelona','Manchester City','Liverpool FC','Chelsea','Arsenal','Bayern München','Paris Saint-Germain','Inter de Milán','AC Milan','Juventus'].includes(name);
+                const strong = ['Atlético de Madrid','Manchester United','Tottenham Hotspur','Newcastle United','Borussia Dortmund','Bayer Leverkusen','RB Leipzig','Napoli','AS Roma','Benfica','FC Porto','Sporting CP','Ajax','PSV Eindhoven','River Plate','Boca Juniors','Flamengo','Palmeiras'].includes(name);
+                const secondDivision = club?.div === 2;
+                const base = Math.max(42, Math.min(94, rep - (secondDivision ? 3 : 0)));
+                const bonus = elite ? 7 : strong ? 3 : 0;
+                const jitter = (v, spread=2) => Math.round(v + (Math.random()*2-1)*spread);
+                const coachQuality = Math.max(40, Math.min(99, jitter(base + bonus + 1, 3)));
+                const facilities = Math.max(38, Math.min(99, jitter(base + bonus*0.9 - (secondDivision ? 2 : 0), 2)));
+                const medicalQuality = Math.max(42, Math.min(98, jitter(base + bonus/2, 3)));
+                const academyQuality = Math.max(40, Math.min(99, jitter(base + bonus + (secondDivision ? -2 : 1), 3)));
+                const score = Math.round(coachQuality*.35 + facilities*.30 + medicalQuality*.15 + academyQuality*.20);
+                return { coachQuality, facilities, medicalQuality, academyQuality, score, club:name };
+            }
+            getDevelopmentFactor() {
+                const d=this.player.development || this.createClubEnvironment(this.getClub(this.player.club));
+                this.player.development=d;
+                let factor = 0.48 + (d.score/100)*0.62;
+                if(this.player.squadRole==='Titular') factor += 0.13;
+                else if(this.player.squadRole==='Rotación') factor += 0.02;
+                if(this.player.age<=20 && this.player.squadRole==='Rotación') factor -= 0.07;
+                const recentForm = Number(this.player.form || this.player.totals?.avgRating || 6.5);
+                factor += Math.max(-0.16, Math.min(0.16, (recentForm - 6.5) * 0.14));
+                return Math.max(0.42,Math.min(1.28,factor));
+            }
+            getRepresentativeAdvice() {
+                const d=this.player.development || {score:60};
+                const ovr=this.player.ovr, club=this.getClub(this.player.club);
+                if(this.player.loanFrom) return `Tu representante cree que la cesión debe darte minutos y continuidad antes de valorar un cambio definitivo.`;
+                if(d.score<58 && ovr>=70) return `“Eres mejor que el contexto actual. El club no te está dando un entorno de desarrollo suficientemente bueno; estudiaría una salida si aparece un proyecto con mejores entrenadores e instalaciones.”`;
+                if(d.score<68 && ovr>=76) return `“Tu progresión se está frenando. No tienes por qué salir ya, pero conviene escuchar ofertas de clubes con una estructura de desarrollo superior.”`;
+                if(this.player.squadRole!=='Titular' && ovr>=72) return `“Necesitas minutos. Antes de buscar un club más grande, priorizaría un destino donde seas importante.”`;
+                if(d.score>=82 && this.player.squadRole==='Titular') return `“Ahora mismo tienes un entorno excelente y minutos. Mi recomendación profesional es consolidarte antes de dar el siguiente salto.”`;
+                return `“La situación es estable. Seguiremos comparando minutos, nivel de competición, salario y capacidad de desarrollo antes de recomendar un cambio.”`;
+            }
+            prepareRepresentativeInbox() {
+                if(!this.player) return;
+                this.player.repOffers=[];
+                const d=this.player.development || this.createClubEnvironment(this.getClub(this.player.club));
+                const messages=[];
+                messages.push(`Informe de temporada: estás en ${this.player.club} con ${this.player.ovr} OVR y un entorno de desarrollo de ${d.score}/100.`);
+                if(d.score<60) messages.push('He hablado con varios contactos: hay estructuras de entrenamiento que podrían ayudarte más a progresar.');
+                else if(this.player.squadRole!=='Titular') messages.push('Tu prioridad debería ser conseguir más minutos y continuidad.');
+                else messages.push('Tu continuidad y tu evolución están siendo positivas; no hay necesidad de precipitar una salida.');
+                if(Math.random()<0.48) this.generateTransferOffers(false);
+                if(this.player.repOffers.length) messages.push(`Tengo ${this.player.repOffers.length} propuesta${this.player.repOffers.length===1?'':'s'} sobre la mesa. Revísalas antes de decidir.`);
+                this.player.repMessages=messages.slice(-5);
+                this.player.repUnread=true;
+                this.renderRepresentative();
+            }
+            markRepresentativeRead() { if(this.player){this.player.repUnread=false;this.saveGame();this.updateRepresentativeBadge();} }
+            updateRepresentativeBadge() {
+                const b=document.getElementById('navRepBadge'); if(!b||!this.player)return;
+                const count=(this.player.repOffers||[]).length + (this.player.repUnread ? 1 : 0);
+                b.classList.toggle('hidden',count===0);
+                b.innerText=count>0 ? (this.player.repOffers?.length ? `${this.player.repOffers.length} OFERTAS` : 'NUEVO') : '';
+            }
+            renderRepresentative() {
+                if(!this.player)return;
+                document.getElementById('repAdvice').innerText=this.getRepresentativeAdvice();
+                const messages=document.getElementById('repMessagesList');
+                messages.innerHTML=(this.player.repMessages||[]).map((m,i)=>`<div class="bg-slate-900 rounded-xl p-3 border border-slate-800 text-xs text-slate-300"><span class="text-violet-400 font-black mr-2">${i===0?'REP.':'MENSAJE'}</span>${m}</div>`).join('') || '<p class="text-xs text-slate-500">Tu representante todavía no tiene mensajes.</p>';
+                const offers=document.getElementById('repOffersList');
+                const arr=this.player.repOffers||[];
+                document.getElementById('repOffersCount').innerText=arr.length;
+                offers.innerHTML=arr.length ? arr.map((o,i)=>`<div class="bg-slate-900 p-4 rounded-xl border ${o.loan?'border-blue-500/30':'border-slate-800'} flex justify-between items-center gap-3"><div><h4 class="font-bold text-slate-100">${o.club} ${o.loan?'<span class="text-[9px] bg-blue-500/20 text-blue-300 px-2 py-1 rounded">CESIÓN</span>':''}</h4><p class="text-xs text-slate-400">${o.league} · ${o.role||'Más minutos'} · <strong class="text-emerald-400">${this.formatMoney(o.salary)}/año</strong></p><p class="text-[10px] text-slate-500 mt-1">${o.reason||'Interés por tu progresión'}</p></div>${o.loan?`<button onclick="app.acceptLoan('${o.club.replace(/'/g,"\'")}','${o.league.replace(/'/g,"\'")}',${o.salary})" class="bg-blue-500 hover:bg-blue-400 text-white text-xs font-extrabold px-3 py-2 rounded-lg">Aceptar</button>`:`<button onclick="app.startContractNegotiation('${o.club.replace(/'/g,"\'")}',${o.salary},'${o.league.replace(/'/g,"\'")}','${o.role}')" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-extrabold px-3 py-2 rounded-lg">Negociar</button>`}</div>`).join('') : '<p class="text-xs text-slate-500">No hay ofertas nuevas. Tu representante seguirá moviéndose en el mercado.</p>';
+                document.getElementById('repInboxCount').innerText=`${arr.length + (this.player.repUnread?1:0)} novedades`;
+                this.updateRepresentativeBadge();
+            }
+
+            getClub(name) {
+                const all = Object.values(CLUB_DATABASE).flat();
+                return all.find(c => c.name === name) || { name, rep: 60, div: 2, lg: (LEAGUES.find(l => l.n === this.player.league || l.d2n === this.player.league) || LEAGUES[0]).n };
+            }
+
+            // Títulos de la temporada según el nivel del club (y un pequeño extra si tu OVR supera al del equipo)
+            rollTitles(chanceMultiplier = 1) {
+                const c = this.getClub(this.player.club);
+                const L = LEAGUES.find(l => l.n === c.lg) || LEAGUES[0];
+                const rep = c.rep;
+                const bonus = Math.max(-0.05, Math.min(0.06, (this.player.ovr - rep) * 0.004));
+                const roll = (p) => Math.random() < Math.max(0, Math.min(0.18, (p + bonus) * chanceMultiplier));
+                const won = [];
+                if (c.div === 2) {
+                    if (roll((rep - 54) * 0.012)) won.push({ k: 'lg2', name: `Campeón ${L.d2n}` });
+                    if (roll(0.03)) won.push({ k: 'cup', name: L.cup });
+                    return won;
+                }
+                if (roll(Math.pow(Math.max(0, rep - 52) / 43, 3) * 0.6)) won.push({ k: 'lg1', name: `Campeón ${L.n}` });
+                if (roll(Math.pow(Math.max(0, rep - 52) / 43, 2) * 0.25)) won.push({ k: 'cup', name: L.cup });
+                if (L.c === 'eu' && rep >= 84 && roll(Math.pow((rep - 72) / 23, 3) * 0.3)) won.push({ k: 'cl', name: 'UEFA Champions League' });
+                else if (L.c === 'eu' && rep >= 72 && rep < 84 && roll(0.08 + (rep - 72) * 0.004)) won.push({ k: 'el', name: 'UEFA Europa League' });
+                if (L.c === 'sa' && rep >= 72 && roll(Math.pow((rep - 68) / 20, 3) * 0.4)) won.push({ k: 'lib', name: 'Copa Libertadores' });
+                return won;
+            }
+
+            showTitles(won) {
+                document.getElementById('titlesWon').innerHTML = won.map(t =>
+                    `<div class="flex flex-col items-center w-28">${trophySVG(t.k, 72)}<span class="text-xs font-bold text-slate-200 mt-2">${t.name}</span></div>`).join('');
+                document.getElementById('modalTitles').classList.remove('hidden');
+            }
+
+            renderTrophyRoom() {
+                const groups = {};
+                (this.player.titles || []).forEach(t => {
+                    const key = t.k + '|' + t.name;
+                    (groups[key] = groups[key] || { k: t.k, name: t.name, years: [] }).years.push(t.year);
+                });
+                const list = Object.values(groups);
+                document.getElementById('trophyRoom').innerHTML = list.length ? list.map(g =>
+                    `<div class="flex items-center space-x-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2" title="${g.years.join(', ')}">${trophySVG(g.k, 40)}<div><div class="text-xs font-bold text-slate-200">${g.name}</div><div class="text-xs text-amber-400 font-black">×${g.years.length}</div></div></div>`).join('')
+                    : '<p class="text-xs text-slate-500">Aún no has ganado títulos. ¡A por el primero!</p>';
+            }
+
+            formatMoney(n) {
+                if (n >= 1000000) return `€${(n / 1000000).toFixed(1).replace(/\.0$/, '')}M`;
+                if (n >= 1000) return `€${Math.round(n / 1000)}k`;
+                return `€${n}`;
+            }
+
+            calculateOVR(stats) {
+                return Math.round((stats.pace + stats.shooting + stats.passing + stats.dribbling + stats.defense + stats.physical) / 6);
+            }
+
+            simNextSeasonDirectly() {
+                if (this.player.age >= 38) {
+                    this.retirePlayer();
+                    return;
+                }
+                audioManager.playClick();
+                const seasonStartOVR = this.player.ovr;
+
+                // Clear or handle injury recovery from previous year
+                let injuryLossGames = 0;
+                if (this.activeInjury) {
+                    injuryLossGames = this.activeInjury.gamesLost;
+                    this.toast('Recuperado', `Te has recuperado de tu ${this.activeInjury.name}.`);
+                    this.activeInjury = null;
+                }
+
+                // Decisiones importantes: aproximadamente una temporada sí y otra no.
+                // La primera temporada siempre puede traer una decisión; después alternan.
+                const decisionSeason = (this.player.seasonCount || 0) % 2 === 0;
+                if (decisionSeason && Math.random() < 0.92) {
+                    this.triggerRandomUnexpectedEvent();
+                }
+                // Ruedas de prensa: solo 2-3 durante toda una carrera y nunca se repite una pregunta.
+                const pressCount = this.player.pressConferenceCount || 0;
+                let pressChance = pressCount === 0 ? 0.08 : (pressCount === 1 ? 0.10 : 0.055);
+                // Si todavía no ha aparecido ninguna a mitad de carrera, aumentamos ligeramente la oportunidad.
+                if (pressCount === 0 && this.player.age >= 25) pressChance = 0.16;
+                if (pressCount === 1 && this.player.age >= 30) pressChance = 0.14;
+                if (pressCount < 3 && Math.random() < pressChance) {
+                    this.triggerPressConference();
+                }
+
+                // Progresión equilibrada: las malas temporadas ya no destruyen la media.
+                // Los jóvenes pueden crecer bastante y los buenos años permiten llegar a medias altas.
+                const seasonRoll = Math.random();
+                let seasonOutcome, development;
+                if (seasonRoll < 0.10) { seasonOutcome = 'temporada_negra'; development = -1; }
+                else if (seasonRoll < 0.28) { seasonOutcome = 'temporada_irregular'; development = 0; }
+                else if (seasonRoll < 0.68) { seasonOutcome = 'temporada_solida'; development = 1; }
+                else if (seasonRoll < 0.90) { seasonOutcome = 'temporada_brillante'; development = 2; }
+                else { seasonOutcome = 'temporada_historica'; development = 3; }
+
+                // Potencial de desarrollo por edad. El pico llega más tarde y el declive es gradual.
+                let ageGrowth = this.player.age <= 18 ? 2.0 :
+                    this.player.age <= 21 ? 1.65 :
+                    this.player.age <= 24 ? 1.25 :
+                    this.player.age <= 27 ? 0.70 :
+                    this.player.age === 28 ? -0.04 :
+                    this.player.age === 29 ? -0.12 :
+                    this.player.age === 30 ? -0.22 :
+                    this.player.age === 31 ? -0.34 :
+                    this.player.age === 32 ? -0.48 :
+                    this.player.age === 33 ? -0.62 :
+                    this.player.age <= 35 ? -0.82 :
+                    this.player.age <= 37 ? -1.05 : -1.30;
+                if (this.player.squadRole === 'Titular' && this.player.age < 30) ageGrowth += 0.35;
+                if (this.player.morale === 'Alta' && this.player.age < 30) ageGrowth += 0.20;
+
+                // Desarrollo realista: entrenador + instalaciones + área médica + minutos.
+                // Un talento enorme puede estancarse si trabaja en un entorno pobre.
+                const developmentFactor = this.getDevelopmentFactor();
+                ageGrowth *= developmentFactor;
+                const environmentPenalty = developmentFactor < 0.72 ? -0.22 : developmentFactor < 0.88 ? -0.08 : developmentFactor > 1.08 ? 0.10 : 0;
+
+                const positionFocus = {
+                    POR:['defense','physical'], LI:['pace','defense','passing'], DFC:['defense','physical'], LD:['pace','defense','passing'],
+                    MCD:['defense','passing','physical'], MC:['passing','dribbling'], MCO:['passing','dribbling','shooting'],
+                    EI:['pace','dribbling','shooting'], ED:['pace','dribbling','shooting'], SD:['shooting','dribbling','pace'], DC:['shooting','pace','physical']
+                }[this.player.positionCode || this.player.position] || ['pace','passing','dribbling'];
+                const focus = new Set(positionFocus);
+                ['pace','shooting','passing','dribbling','defense','physical'].forEach(k => {
+                    let change = ageGrowth + development * (focus.has(k) ? 0.38 : 0.20) + environmentPenalty + (Math.random() - 0.5) * 0.8;
+                    // Desde los 32-33 años empieza un declive progresivo, sin desplomes bruscos.
+                    if (this.player.age === 32) change = Math.min(change, 0);
+                    if (this.player.age === 33) change = Math.min(change, -0.10);
+                    if (this.player.age >= 34) change = Math.min(change, -0.20);
+                    const delta = Math.round(change);
+                    this.player.stats[k] = Math.min(99, Math.max(40, this.player.stats[k] + delta));
+                });
+                this.player.ovr = this.calculateOVR(this.player.stats);
+                const seasonMarketValue = this.calculateMarketValue(this.player.ovr);
+                if (this.player.ovr > (this.player.careerPeakOVR || 0)) {
+                    this.player.careerPeakOVR = this.player.ovr;
+                    this.player.careerPeakMarketValue = seasonMarketValue;
+                    this.player.careerPeakStats = { ...this.player.stats };
+                    this.player.careerPeakClub = this.player.club;
+                } else if (seasonMarketValue > (this.player.careerPeakMarketValue || 0)) {
+                    this.player.careerPeakMarketValue = seasonMarketValue;
+                }
+                // Calendario y minutos dinámicos: forma, rol, edad, lesiones y azar modifican las apariciones.
+                const recentFormForGames = Number(this.player.form || 6.5);
+                const formAvailability = Math.max(-4, Math.min(4, (recentFormForGames - 6.5) * 3.2));
+                const roleAvailability = this.player.squadRole === 'Titular' ? 0 : this.player.squadRole === 'Rotación' ? -7 : -13;
+                const ageAvailability = this.player.age >= 30 ? -(this.player.age - 29) * 0.8 : 0;
+                const randomSchedule = Math.floor(Math.random() * 7) - 3;
+                const maxGames = Math.max(30, Math.min(38, 34 + randomSchedule));
+                const availabilityRate = Math.max(0.38, Math.min(0.98, 0.91 + formAvailability/100 + roleAvailability/100 + ageAvailability/100));
+                const playedGames = Math.max(8, Math.min(maxGames, Math.floor((maxGames - injuryLossGames) * availabilityRate)));
+
+                let goals = 0, assists = 0, ratingSum = 0;
+                for (let i = 0; i < playedGames; i++) {
+                    const matchRating = Math.min(10, Math.max(5.0, (this.player.ovr / 10) + (Math.random() * 2.2 - 1.0)));
+                    ratingSum += matchRating;
+
+                    const formMultiplier = seasonOutcome === 'temporada_negra' ? 0.55 : seasonOutcome === 'temporada_irregular' ? 0.8 : seasonOutcome === 'temporada_brillante' ? 1.12 : seasonOutcome === 'temporada_historica' ? 1.25 : 1;
+                    const mechanicsPosition = this.player.positionCode || this.player.position;
+                    const attackingPosition = ['DC','SD','EI','ED'].includes(mechanicsPosition);
+                    const creativePosition = ['MCO','MC','MCD','EI','ED','LI','LD'].includes(mechanicsPosition);
+                    if (attackingPosition && Math.random() < Math.min(0.75, (this.player.stats.shooting / 100) * 0.42 * formMultiplier)) goals++;
+                    if (creativePosition && Math.random() < Math.min(0.65, (this.player.stats.passing / 100) * 0.34 * formMultiplier)) assists++;
+                    if (Math.random() < 0.05 * formMultiplier) assists++;
+                }
+
+                const seasonAvgRating = playedGames > 0 ? Number((ratingSum / playedGames).toFixed(1)) : 0;
+                this.player.form = seasonAvgRating || this.player.form || 6.5;
+                this.player.lastSeasonApps = playedGames;
+
+                // La forma y los minutos tienen efecto directo sobre el desarrollo de la siguiente etapa.
+                const performanceDevelopment = Math.max(-0.65, Math.min(0.65, (this.player.form - 6.5) * 0.34));
+                const minutesDevelopment = Math.max(-0.20, Math.min(0.20, (playedGames - 24) * 0.012));
+                const lateCareerPenalty = this.player.age >= 28 ? Math.max(-0.35, -(this.player.age - 27) * 0.055) : 0;
+                const finalDevelopment = performanceDevelopment + minutesDevelopment + lateCareerPenalty;
+                Object.keys(this.player.stats).forEach(k => {
+                    let delta = finalDevelopment * (positionFocus.includes(k) ? 0.75 : 0.40);
+                    if (this.player.age >= 28) delta = Math.min(delta, this.player.form >= 7.4 ? 0.10 : -0.02);
+                    this.player.stats[k] = Math.min(99, Math.max(40, this.player.stats[k] + Math.round(delta)));
+                });
+                this.player.ovr = this.calculateOVR(this.player.stats);
+
+                // Incluso una temporada brillante puede acabar sin títulos.
+                const titleChanceMultiplier = {
+                    temporada_negra: 0.25,
+                    temporada_irregular: 0.55,
+                    temporada_solida: 0.85,
+                    temporada_brillante: 1.10,
+                    temporada_historica: 1.35
+                }[seasonOutcome];
+                const won = this.rollTitles(titleChanceMultiplier);
+                const trophyName = won.length ? won.map(t => t.name).join(' · ') : "-";
+                this.player.totals.trophies += won.length;
+                this.player.titles = this.player.titles || [];
+                won.forEach(t => this.player.titles.push({ ...t, year: this.currentYear, club: this.player.club }));
+                if (won.length) this.showTitles(won);
+
+                // Add annual salary to bank
+                this.player.bank += this.player.salary;
+
+                // Update cumulative stats
+                this.player.totals.apps += playedGames;
+                this.player.totals.goals += goals;
+                this.player.totals.assists += assists;
+                this.player.totals.avgRating = seasonAvgRating;
+
+                this.history.push({
+                    year: this.currentYear,
+                    age: this.player.age,
+                    club: this.player.club,
+                    apps: playedGames,
+                    goals,
+                    assists,
+                    rating: seasonAvgRating.toFixed(1),
+                    ovr: this.player.ovr,
+                    salary: this.formatMoney(this.player.salary),
+                    trophy: trophyName
+                });
+
+                this.logToHub(`Año ${this.currentYear} (${this.player.club}): ${playedGames} PJ, ${goals} Goles, Prom ${seasonAvgRating}`);
+
+                this.generateLeagueNewsAndTransfers();
+                this.checkAchievements();
+
+                // Desde los 28-29 existe un declive de base. Una temporada excepcional puede amortiguarlo, pero no eliminarlo del todo.
+                if (this.player.age >= 28) {
+                    const maxOVR = this.player.age === 28 && this.player.form >= 7.4 ? seasonStartOVR + 0.3 :
+                        this.player.age === 29 && this.player.form >= 7.5 ? seasonStartOVR :
+                        this.player.age >= 30 && this.player.form >= 7.7 ? seasonStartOVR - 0.15 :
+                        seasonStartOVR - (this.player.age - 27) * 0.12;
+                    if (this.player.ovr > maxOVR) {
+                        const keys = Object.keys(this.player.stats);
+                        while (this.calculateOVR(this.player.stats) > maxOVR) {
+                            const k = keys.sort((a,b)=>this.player.stats[b]-this.player.stats[a])[0];
+                            this.player.stats[k] = Math.max(40, this.player.stats[k]-1);
+                        }
+                        this.player.ovr = this.calculateOVR(this.player.stats);
+                    }
+                }
+                if (this.player.age < 34 && this.player.ovr > (this.player.peakOVR || 0)) {
+                    this.player.peakOVR=this.player.ovr; this.player.peakStats={...this.player.stats};
+                }
+                this.player.peakMarketValue=Math.max(this.player.peakMarketValue||0,this.calculateMarketValue(this.player.ovr));
+
+                // Fin de cesión: regreso al club de origen tras una temporada.
+                if (this.player.loanFrom && this.player.loanUntil && this.currentYear + 1 >= this.player.loanUntil) {
+                    const parent=this.player.loanFrom;
+                    const parentLeague=this.player.loanParentLeague || this.player.league;
+                    const parentSalary=this.player.loanParentSalary || this.player.salary;
+                    this.player.club=parent; this.player.league=parentLeague; this.player.salary=parentSalary;
+                    this.player.squadRole='Rotación';
+                    delete this.player.loanFrom; delete this.player.loanUntil; delete this.player.loanParentLeague; delete this.player.loanParentSalary;
+                    this.newsList.unshift(`${this.player.name} regresa a ${parent} tras completar su cesión.`);
+                    this.toast('🔙 Fin de cesión',`Has regresado a ${parent}.`);
+                }
+
+                this.player.seasonCount = (this.player.seasonCount || 0) + 1;
+                this.player.age++;
+                this.currentYear++;
+
+                // Al comenzar la nueva temporada, el representante actualiza su bandeja.
+                this.prepareRepresentativeInbox();
+                this.saveGame();
+                this.updateUI();
+                this.renderRepresentative();
+
+                if ((this.player.repOffers||[]).length) {
+                    this.toast('📩 Tu representante tiene novedades', `Hay ${this.player.repOffers.length} oferta${this.player.repOffers.length===1?'':'s'} nuevas en “Mi Representante”.`);
+                } else {
+                    this.toast('📨 Informe del representante', 'No hay ofertas nuevas, pero tienes un informe actualizado sobre tu situación.');
+                }
+            }
+
+            // Secret extra night training: aviso y confirmación dentro de la interfaz, nunca con confirm().
+            triggerSecretNightTraining() {
+                audioManager.playClick();
+                if (this.player.nightTrainingYear === this.currentYear) {
+                    this.toast('Entrenamiento ya realizado', `Solo puedes hacerlo una vez por temporada. Vuelve en ${this.currentYear + 1}.`);
+                    return;
+                }
+                this.showInGameNotice(
+                    '🌙 Entrenamiento a escondidas',
+                    'Vas a entrenar fuera del horario del club. Puedes mejorar tus atributos, lesionarte por sobrecarga o perder la confianza del entrenador.',
+                    '45% mejora · 35% lesión · 20% castigo del míster',
+                    () => this.resolveSecretNightTraining()
+                );
+            }
+
+            resolveSecretNightTraining() {
+                this.player.nightTrainingYear = this.currentYear;
+                const chance = Math.random();
+                if (chance < 0.45) {
+                    if (this.player.age >= 34) {
+                        this.toast('🌙 Entrenamiento controlado', 'La sesión fue positiva, pero desde los 34 años ya no puedes aumentar la media.');
+                        this.logToHub('Entrenamiento nocturno exitoso, pero la media queda limitada por la edad.');
+                    } else {
+                        this.player.stats.pace = Math.min(99, this.player.stats.pace + 2);
+                        this.player.stats.shooting = Math.min(99, this.player.stats.shooting + 2);
+                        this.player.stats.dribbling = Math.min(99, this.player.stats.dribbling + 2);
+                        this.player.ovr = this.calculateOVR(this.player.stats);
+                        this.updateCareerPeak();
+                        this.toast('🚀 Entrenamiento exitoso', 'Has mejorado Ritmo, Tiro y Regate. (+2 en cada atributo)');
+                        this.logToHub('Entrenamiento nocturno exitoso: +2 Ritmo, +2 Tiro y +2 Regate.');
+                    }
+                } else if (chance < 0.80) {
+                    const lossGames = Math.floor(Math.random() * 12) + 6;
+                    this.activeInjury = { name: 'Rotura Fibrilar por Sobrecarga Nocturna', gamesLost: lossGames };
+                    this.toast('🤕 Sobrecarga', `Te lesionaste entrenando a escondidas. Perderás ${lossGames} partidos.`);
+                    this.logToHub(`Lesión nocturna: ${lossGames} partidos fuera.`);
+                } else {
+                    this.player.morale = 'Baja';
+                    this.player.squadRole = 'Suplente';
+                    this.toast('😡 El míster te descubrió', 'Has perdido confianza del entrenador y pasas a ser suplente.');
+                    this.logToHub('El míster te descubrió entrenando de noche. Relegado al banquillo.');
+                }
+                this.saveGame();
+                this.updateUI();
+            }
+
+            showInGameNotice(title, desc, impact, callback) {
+                document.getElementById('eventTitle').innerText = title;
+                document.getElementById('eventDescription').innerText = desc;
+                document.getElementById('eventImpactBadge').innerText = `Aviso: ${impact}`;
+                document.getElementById('eventIcon').className = 'fa-solid fa-triangle-exclamation text-2xl';
+                const btn = document.getElementById('eventContinueButton');
+                btn.innerText = 'ARRIESGARME';
+                btn.onclick = () => {
+                    document.getElementById('modalUnexpectedEvent').classList.add('hidden');
+                    callback();
+                };
+                document.getElementById('modalUnexpectedEvent').classList.remove('hidden');
+            }
+
+            updateCareerPeak() {
+                const value = this.calculateMarketValue(this.player.ovr);
+                if (this.player.age < 34 && this.player.ovr > (this.player.careerPeakOVR || 0)) {
+                    this.player.careerPeakOVR = this.player.ovr;
+                    this.player.careerPeakStats = { ...this.player.stats };
+                    this.player.careerPeakClub = this.player.club;
+                }
+                if (value > (this.player.careerPeakMarketValue || 0)) this.player.careerPeakMarketValue = value;
+            }
+
+            // Dynamic Unexpected Events
+            triggerRandomUnexpectedEvent() {
+                // Pool amplio y ponderado: los eventos cambian cada temporada y muchos obligan a tomar decisiones.
+                const events = [
+                    {title:'Tu compañero quiere irse',desc:'Un titular del vestuario recibe una oferta y te pide consejo. Tu respuesta puede afectar al ambiente.',icon:'fa-people-arrows',choices:[
+                        ['Le digo que se quede.',()=>{this.player.morale='Alta';return 'El vestuario valora tu liderazgo. Moral alta.';}],
+                        ['Le digo que piense en su carrera.',()=>{this.player.repUnread=true;return 'Tu representante nota que entiendes el mercado.';}],
+                        ['No me meto.',()=>{return 'Evitas problemas, sin efecto deportivo.';}]
+                    ]},
+                    {title:'El nuevo fichaje te amenaza el puesto',desc:'El club ficha a un jugador de tu posición. El entrenador decidirá los minutos según tu respuesta y rendimiento.',icon:'fa-user-plus',choices:[
+                        ['Competir entrenando al máximo.',()=>{this.player.form=Math.min(9.9,(this.player.form||6.5)+0.35);return '+0.35 de forma.';}],
+                        ['Pedir una reunión con el míster.',()=>{this.player.squadRole='Titular';return 'El entrenador te da una oportunidad como titular.';}],
+                        ['Pedir salir cedido.',()=>{this.player.repUnread=true;return 'Tu representante empezará a buscar una cesión.';}]
+                    ]},
+                    {title:'Problema con las botas',desc:'Tus botas nuevas te están provocando molestias justo antes de un tramo importante.',icon:'fa-shoe-prints',choices:[
+                        ['Jugar con ellas igualmente.',()=>{this.player.form=Math.max(5.8,(this.player.form||6.5)-0.25);return '-0.25 de forma.';}],
+                        ['Volver a tus botas antiguas.',()=>{this.player.form=Math.min(9.9,(this.player.form||6.5)+0.15);return 'Recuperas comodidad. +0.15 de forma.';}]
+                    ]},
+                    {title:'El míster cambia de sistema',desc:'El nuevo sistema puede favorecer mucho tu posición… o dejarte más lejos del área.',icon:'fa-chess-board',choices:[
+                        ['Adaptarme al sistema.',()=>{this.player.form=Math.min(9.9,(this.player.form||6.5)+0.2);return 'Te adaptas y ganas confianza. +0.2 forma.';}],
+                        ['Pedir libertad táctica.',()=>{this.player.stats.passing=Math.min(99,this.player.stats.passing+1);return '+1 Pase, pero tendrás más responsabilidad.';}],
+                        ['Quejarme públicamente.',()=>{this.player.morale='Baja';this.player.squadRole='Rotación';return 'Pierdes confianza del cuerpo técnico.';}]
+                    ]},
+                    {title:'Una actuación viral',desc:'Un vídeo tuyo se hace viral y empiezan a hablar de ti fuera del país.',icon:'fa-mobile-screen-button',choices:[
+                        ['Aprovechar el momento.',()=>{this.player.repUnread=true;this.player.bank+=Math.round(this.player.salary*0.12);return 'Ganas visibilidad y una prima comercial.';}],
+                        ['Ignorar las redes.',()=>{this.player.form=Math.min(9.9,(this.player.form||6.5)+0.1);return 'Mantienes el foco. +0.1 forma.';}]
+                    ]},
+                    {title:'Oferta de un club de tu misma liga',desc:'Tu representante te informa de que otro club quiere ficharte. No es una oferta formal todavía.',icon:'fa-phone-volume',choices:[
+                        ['Quiero escuchar.',()=>{this.player.repUnread=true;return 'Tu representante abrirá conversaciones.';}],
+                        ['Quiero quedarme.',()=>{this.player.morale='Alta';return 'El club recibe una señal de compromiso.';}]
+                    ]},
+                    {title:'Reunión con el director deportivo',desc:'El club quiere saber si te ves aquí dentro de dos años.',icon:'fa-handshake',choices:[
+                        ['Sí, quiero crecer aquí.',()=>{this.player.morale='Alta';return 'Mejora tu relación con el club.';}],
+                        ['Necesito garantías de minutos.',()=>{this.player.repUnread=true;return 'Tu representante tomará nota para el próximo mercado.';}],
+                        ['No puedo prometer nada.',()=>{this.player.morale='Normal';return 'Mantienes abiertas tus opciones.';}]
+                    ]},
+                    {title:'Sesión extra con el segundo entrenador',desc:'Te ofrece trabajar un aspecto concreto después del entrenamiento.',icon:'fa-stopwatch',choices:[
+                        ['Acepto.',()=>{this.player.form=Math.min(9.9,(this.player.form||6.5)+0.3);this.player.stats.passing=Math.min(99,this.player.stats.passing+1);return '+0.3 forma y +1 Pase.';}],
+                        ['Descanso.',()=>{this.player.energy=100;return 'Recuperación completa.';}]
+                    ]},
+                    {title:'Te llaman para un amistoso internacional',desc:'La selección quiere verte, pero el viaje te hará perder parte de la pretemporada.',icon:'fa-plane-departure',choices:[
+                        ['Voy con la selección.',()=>{this.player.repUnread=true;this.player.form=Math.min(9.9,(this.player.form||6.5)+0.1);return 'Ganas exposición internacional.';}],
+                        ['Me quedo a preparar la temporada.',()=>{this.player.form=Math.min(9.9,(this.player.form||6.5)+0.25);return '+0.25 forma de pretemporada.';}]
+                    ]},
+                    {title:'Entrenamiento con el primer equipo',desc:'Un veterano te pide que entrenes a su lado durante varias semanas.',icon:'fa-people-group',choices:[
+                        ['Aprender de él.',()=>{this.player.stats.physical=Math.min(99,this.player.stats.physical+1);this.player.form=Math.min(9.9,(this.player.form||6.5)+0.15);return '+1 Físico y +0.15 forma.';}],
+                        ['Competirle cada ejercicio.',()=>{this.player.stats.pace=Math.min(99,this.player.stats.pace+1);return '+1 Velocidad.';}]
+                    ]},
+                    {title:'Pequeño roce con la afición',desc:'Tras un mal partido recibes críticas al salir del estadio.',icon:'fa-comments',choices:[
+                        ['Pararme y dar la cara.',()=>{this.player.morale='Alta';return 'La afición aprecia el gesto.';}],
+                        ['Irme rápido.',()=>{this.player.morale='Normal';return 'El asunto se enfría solo.';}]
+                    ]},
+                    {title:'El club cambia de preparador físico',desc:'El nuevo preparador tiene una metodología mucho más exigente.',icon:'fa-dumbbell',choices:[
+                        ['Adaptarme.',()=>{this.player.stats.physical=Math.min(99,this.player.stats.physical+1);return '+1 Físico.';}],
+                        ['Pedir una carga menor.',()=>{this.player.form=Math.min(9.9,(this.player.form||6.5)+0.1);return 'Menos carga y mejor recuperación.';}]
+                    ]},
+                    {title:'Te proponen cambiar de posición',desc:'El entrenador cree que puedes rendir mejor en otra zona del campo.',icon:'fa-arrows-left-right',choices:[
+                        ['Acepto probar.',()=>{this.player.form=Math.min(9.9,(this.player.form||6.5)+0.2);return '+0.2 forma por adaptación.';}],
+                        ['Quiero seguir en mi posición.',()=>{this.player.morale='Normal';return 'Mantienes tu rol habitual.';}]
+                    ]},
+                    {title:'Una comida con el capitán',desc:'El capitán quiere hablar contigo porque te considera importante para el grupo.',icon:'fa-utensils',choices:[
+                        ['Escuchar sus consejos.',()=>{this.player.morale='Alta';return 'Mejora tu integración en el vestuario.';}],
+                        ['Hablar de tu futuro.',()=>{this.player.repUnread=true;return 'El capitán te recomienda revisar tus opciones.';}]
+                    ]},
+                    {title:'Tu representante detecta una oportunidad',desc:'Hay un club que necesita urgentemente un jugador de tu perfil.',icon:'fa-user-tie',choices:[
+                        ['Autorizar contactos.',()=>{this.player.repUnread=true;return 'Tu representante empezará a negociar.';}],
+                        ['No mover nada todavía.',()=>{return 'Decides centrarte en tu temporada.';}]
+                    ]},
+                    {title:'Golpe en el entrenamiento',desc:'Recibes un golpe y el cuerpo médico recomienda no forzar.',icon:'fa-bandage',choices:[
+                        ['Hacer caso al médico.',()=>{this.activeInjury={name:'Contusión leve',gamesLost:Math.floor(Math.random()*3)+1};return `${this.activeInjury.gamesLost} partido(s) de baja.`;}],
+                        ['Forzar para jugar.',()=>{this.activeInjury={name:'Sobrecarga muscular',gamesLost:Math.floor(Math.random()*5)+3};return `Forzaste y estarás ${this.activeInjury.gamesLost} partidos fuera.`;}]
+                    ]},
+                    {title:'Premio inesperado del club',desc:'El club te premia por tu actitud durante los entrenamientos.',icon:'fa-medal',choices:[
+                        ['Reinvertirlo en preparación.',()=>{this.player.bank+=Math.round(this.player.salary*0.05);this.player.form=Math.min(9.9,(this.player.form||6.5)+0.2);return 'Prima y +0.2 forma.';}],
+                        ['Ahorrarlo.',()=>{this.player.bank+=Math.round(this.player.salary*0.12);return 'Prima económica importante.';}]
+                    ]},
+                    {title:'Rumor de crisis en el vestuario',desc:'Dos pesos pesados han discutido y el ambiente está raro.',icon:'fa-fire-flame-curved',choices:[
+                        ['Intentar unir al grupo.',()=>{this.player.morale='Alta';return 'Tu liderazgo mejora el ambiente.';}],
+                        ['No involucrarme.',()=>{return 'No te afecta directamente.';}]
+                    ]},
+                    {title:'Un ojeador extranjero te ve en directo',desc:'Un club de otra liga manda un ojeador específicamente para ti.',icon:'fa-eye',choices:[
+                        ['Jugar sin pensar en el ojeador.',()=>{this.player.form=Math.min(9.9,(this.player.form||6.5)+0.15);return '+0.15 forma.';}],
+                        ['Intentar impresionar.',()=>{if(Math.random()<0.5){this.player.form=Math.min(9.9,(this.player.form||6.5)+0.45);return '+0.45 forma.';}this.player.form=Math.max(5.5,(this.player.form||6.5)-0.25);return 'La presión te pudo. -0.25 forma.';}]
+                    ]},
+                    {title:'Cambio de césped',desc:'El club cambia el césped del estadio y durante semanas el campo no está en condiciones perfectas.',icon:'fa-futbol',choices:[
+                        ['Adaptarme.',()=>{this.player.form=Math.min(9.9,(this.player.form||6.5)+0.1);return 'Te adaptas rápidamente.';}],
+                    ]},
+                    {title:'El vestuario te elige para una charla',desc:'Los compañeros quieren que seas uno de los líderes del grupo.',icon:'fa-microphone',choices:[
+                        ['Aceptar el liderazgo.',()=>{this.player.morale='Alta';this.player.repUnread=true;return 'Aumenta tu peso dentro del vestuario.';}],
+                        ['Prefiero mantenerme al margen.',()=>{return 'Evitas responsabilidad extra.';}]
+                    ]},
+                    {title:'Un periodista publica una crítica dura',desc:'Un periodista cuestiona públicamente si tienes nivel para el club.',icon:'fa-newspaper',choices:[
+                        ['Responder en el campo.',()=>{this.player.form=Math.min(9.9,(this.player.form||6.5)+0.3);return '+0.3 forma por motivación.';}],
+                        ['Responder en redes.',()=>{this.player.morale='Baja';return 'La polémica te distrae.';}]
+                    ]},
+                    {title:'Oferta de patrocinio local',desc:'Una empresa de tu ciudad quiere asociarse contigo.',icon:'fa-store',choices:[
+                        ['Aceptar.',()=>{this.player.bank+=Math.round(this.player.salary*0.10);return `+${this.formatMoney(Math.round(this.player.salary*0.10))}.`;}],
+                        ['Rechazar para centrarme.',()=>{this.player.form=Math.min(9.9,(this.player.form||6.5)+0.1);return '+0.1 forma.';}]
+                    ]},
+                    {title:'Te ofrecen vacaciones extra',desc:'El cuerpo técnico te permite descansar unos días más después de una carga fuerte.',icon:'fa-umbrella-beach',choices:[
+                        ['Aceptar el descanso.',()=>{this.player.energy=100;this.player.form=Math.min(9.9,(this.player.form||6.5)+0.15);return 'Recuperación excelente. +0.15 forma.';}],
+                        ['Entrenar por tu cuenta.',()=>{this.player.stats.physical=Math.min(99,this.player.stats.physical+1);return '+1 Físico.';}]
+                    ]},
+                    {title:'Un veterano se lesiona',desc:'Tu compañero de posición estará fuera varias semanas y el club necesita que des un paso adelante.',icon:'fa-user-injured',choices:[
+                        ['Asumir la responsabilidad.',()=>{this.player.squadRole='Titular';this.player.form=Math.min(9.9,(this.player.form||6.5)+0.25);return 'Te conviertes en titular temporal. +0.25 forma.';}],
+                        ['Pedir refuerzos.',()=>{return 'El club buscará cubrir la baja.';}]
+                    ]},
+                    {title:'Viaje agotador',desc:'Un calendario internacional te obliga a cruzar varios países en pocos días.',icon:'fa-plane',choices:[
+                        ['Priorizar recuperación.',()=>{this.player.energy=100;return 'Llegas recuperado.';}],
+                        ['Aprovechar para entrenar.',()=>{this.player.stats.physical=Math.min(99,this.player.stats.physical+1);this.player.form=Math.max(5.5,(this.player.form||6.5)-0.15);return '+1 Físico, pero -0.15 forma.';}]
+                    ]},
+                    {title:'Tu primer gran premio individual',desc:'El club te nomina a un premio mensual de la competición.',icon:'fa-star',choices:[
+                        ['Buscar ganar el premio.',()=>{this.player.form=Math.min(9.9,(this.player.form||6.5)+0.4);return '+0.4 forma.';}],
+                    ]},
+                    {title:'El entrenador te pide más intensidad',desc:'Considera que estás entrenando por debajo de tu nivel.',icon:'fa-person-running',choices:[
+                        ['Subir la intensidad.',()=>{this.player.stats.physical=Math.min(99,this.player.stats.physical+1);this.player.form=Math.min(9.9,(this.player.form||6.5)+0.15);return '+1 Físico y +0.15 forma.';}],
+                        ['Explicar que necesitas recuperar.',()=>{this.player.form=Math.min(9.9,(this.player.form||6.5)+0.05);return 'El cuerpo técnico entiende tu situación.';}]
+                    ]},
+                    {title:'Una marca quiere que cambies tu imagen',desc:'Te ofrecen una campaña importante a cambio de modificar tu estilo público.',icon:'fa-camera',choices:[
+                        ['Aceptar.',()=>{this.player.bank+=Math.round(this.player.salary*0.18);return `+${this.formatMoney(Math.round(this.player.salary*0.18))}.`;}],
+                        ['Rechazar.',()=>{this.player.morale='Alta';return 'Prefieres mantener tu identidad.';}]
+                    ]},
+                    {title:'Charla individual con el míster',desc:'El entrenador te pregunta qué necesitas para dar el siguiente salto.',icon:'fa-comments',choices:[
+                        ['Más minutos.',()=>{this.player.squadRole='Titular';return 'El míster te da una oportunidad.';}],
+                        ['Trabajo específico.',()=>{this.player.stats.dribbling=Math.min(99,this.player.stats.dribbling+1);return '+1 Regate.';}],
+                        ['Nada, estoy bien.',()=>{this.player.morale='Alta';return 'El míster valora tu madurez.';}]
+                    ]},
+                    {title:'El club entra en una mala racha',desc:'Cinco partidos sin ganar ponen presión sobre toda la plantilla.',icon:'fa-arrow-trend-down',choices:[
+                        ['Dar la cara.',()=>{this.player.form=Math.min(9.9,(this.player.form||6.5)+0.25);return '+0.25 forma.';}],
+                        ['Protegerte y no arriesgar.',()=>{this.player.form=Math.max(5.5,(this.player.form||6.5)-0.1);return '-0.1 forma.';}]
+                    ]},
+                    {title:'El equipo está en racha',desc:'El vestuario encadena victorias y tu confianza está por las nubes.',icon:'fa-fire',choices:[
+                        ['Aprovechar la dinámica.',()=>{this.player.form=Math.min(9.9,(this.player.form||6.5)+0.35);return '+0.35 forma.';}],
+                    ]},
+                    {title:'El dilema del nuevo preparador',desc:'El club cambia parte de su metodología. Ninguna opción es perfecta y ambas tienen un coste.',icon:'fa-person-chalkboard',choices:[
+                        ['Seguir el plan nuevo sin protestar.',()=>{this.player.form=Math.max(5.2,(this.player.form||6.5)-0.35);if(this.player.age<30)this.player.stats.physical=Math.max(40,this.player.stats.physical-1);return '-0.35 forma y -1 Físico: adaptación difícil.';}],
+                        ['Mantener tu rutina anterior.',()=>{this.player.morale='Baja';this.player.form=Math.max(5.2,(this.player.form||6.5)-0.25);if(this.player.age<31)this.player.stats.passing=Math.max(40,this.player.stats.passing-1);return 'El cuerpo técnico lo interpreta mal: -0.25 forma y -1 Pase.';}]
+                    ]},
+                    {title:'Te precipitas en una recuperación',desc:'El médico recomienda prudencia, pero tienes un partido importante. Aquí no existe una opción sin riesgo.',icon:'fa-kit-medical',choices:[
+                        ['Forzar para jugar.',()=>{this.player.form=Math.max(5.0,(this.player.form||6.5)-0.45);this.player.injuryRisk=Math.min(25,(this.player.injuryRisk||2)+5);this.player.ovr=Math.max(40,this.player.ovr-1);return '-0.45 forma y -1 OVR por forzar.';}],
+                        ['Parar demasiado tiempo.',()=>{this.player.squadRole='Rotación';this.player.form=Math.max(5.0,(this.player.form||6.5)-0.30);this.player.ovr=Math.max(40,this.player.ovr-1);return 'Pierdes ritmo y confianza: -0.30 forma y -1 OVR.';}]
+                    ]},
+                    {title:'Conflicto con el capitán',desc:'El capitán cree que estás exigiendo demasiado protagonismo. Cualquier respuesta puede generar tensión.',icon:'fa-comments',choices:[
+                        ['Defender tu postura.',()=>{this.player.morale='Baja';this.player.form=Math.max(5.0,(this.player.form||6.5)-0.3);this.player.ovr=Math.max(40,this.player.ovr-1);return 'La discusión pesa en el vestuario: -0.3 forma y -1 OVR.';}],
+                        ['Ceder para evitar problemas.',()=>{this.player.form=Math.max(5.0,(this.player.form||6.5)-0.2);this.player.squadRole='Rotación';return 'Pierdes algo de protagonismo: -0.2 forma y pasas a rotación.';}]
+                    ]},
+                    {title:'Entrenamiento perfecto… pero llegas tarde',desc:'Has hecho una sesión espectacular, pero llegas tarde a una reunión obligatoria.',icon:'fa-clock',choices:[
+                        ['Priorizar el entrenamiento.',()=>{this.player.stats.physical=Math.min(99,this.player.stats.physical+1);this.player.morale='Baja';this.player.form=Math.max(5.2,(this.player.form||6.5)-0.25);return '+1 Físico, pero -0.25 forma y mala relación con el club.';}],
+                        ['Priorizar la reunión.',()=>{this.player.squadRole='Rotación';this.player.form=Math.max(5.2,(this.player.form||6.5)-0.2);return 'Evitas el castigo, pero pierdes protagonismo y -0.2 forma.';}]
+                    ]},
+                    {title:'Tu representante recibe una llamada de un gigante',desc:'No hay oferta formal, pero el interés es serio.',icon:'fa-building',choices:[
+                        ['Quiero que negocie.',()=>{this.player.repUnread=true;return 'Tu representante abre la puerta.';}],
+                        ['No quiero distraerme.',()=>{this.player.form=Math.min(9.9,(this.player.form||6.5)+0.1);return '+0.1 forma.';}]
+                    ]}
+                ];
+                const ev = events[Math.floor(Math.random()*events.length)];
+                document.getElementById('eventTitle').innerText = ev.title;
+                document.getElementById('eventDescription').innerText = ev.desc;
+                document.getElementById('eventIcon').className = `fa-solid ${ev.icon} text-2xl`;
+                const choices = document.getElementById('eventChoices');
+                choices.innerHTML = ev.choices.map((c,i)=>`<button onclick="app.resolveUnexpectedChoice(${i})" class="w-full text-left bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-amber-500/50 p-3 rounded-xl transition"><span class="text-xs font-black text-amber-400 mr-2">${i+1}</span><span class="text-sm font-bold text-slate-200">${c[0]}</span></button>`).join('');
+                document.getElementById('eventImpactBadge').innerText = 'Efecto: tú decides qué hacer';
+                document.getElementById('eventContinueButton').classList.add('hidden');
+                this.activeUnexpectedEvent = ev;
+                document.getElementById('modalUnexpectedEvent').classList.remove('hidden');
+            }
+
+            resolveUnexpectedChoice(index) {
+                const ev = this.activeUnexpectedEvent;
+                if (!ev || !ev.choices[index]) return;
+                const result = ev.choices[index][1]();
+                document.getElementById('eventImpactBadge').innerText = `Decisión: ${result}`;
+                document.getElementById('eventChoices').innerHTML = '';
+                document.getElementById('eventContinueButton').classList.remove('hidden');
+                document.getElementById('eventContinueButton').innerText = 'Continuar temporada';
+                this.activeUnexpectedEvent = null;
+                this.player.repUnread = this.player.repUnread || false;
+                this.saveGame();
+                this.updateUI();
+            }
+
+            triggerPressConference(){
+                const questions=[
+                    {id:'rumors',q:'¿Qué opinas de los rumores que te colocan fuera del club?',opts:[
+                        ['Quiero quedarme y demostrar mi valor aquí.',()=>{this.player.morale='Alta';return 'Transmitiste compromiso. Moral alta y buena relación con el club.';}],
+                        ['Mi agente y el club saben que estoy abierto a escuchar.',()=>{this.player.morale='Normal';return 'Respuesta prudente. No cambia demasiado tu situación.';}],
+                        ['Si llega una oferta mejor, me iré sin pensarlo.',()=>{this.player.morale='Baja';return 'Tus palabras generan tensión con el club.';}] ]},
+                    {id:'star',q:'Has tenido una gran actuación. ¿Te consideras una estrella?',opts:[
+                        ['Todavía tengo mucho que aprender.',()=>{this.player.morale='Alta';return 'La prensa destaca tu humildad. Moral alta.';}],
+                        ['Sí, estoy entre los mejores de mi generación.',()=>{if(this.player.age<32)this.player.stats.shooting=Math.min(99,this.player.stats.shooting+1);return 'Mostraste ambición. Las expectativas sobre ti aumentan.';}],
+                        ['No me interesa lo que diga la prensa.',()=>{this.player.morale='Normal';return 'Respuesta fría. No hay cambios deportivos.';}] ]},
+                    {id:'coach',q:'El entrenador ha cuestionado tu rendimiento. ¿Qué respondes?',opts:[
+                        ['Tiene razón, debo trabajar más.',()=>{this.player.stats.physical=Math.min(99,this.player.stats.physical+1);return '+1 Físico por asumir el reto.';}],
+                        ['Creo que el problema es el sistema, no yo.',()=>{this.player.morale='Baja';return 'La respuesta crea tensión interna.';}],
+                        ['Prefiero hablarlo en privado con él.',()=>{this.player.morale='Alta';return 'Respuesta profesional. Moral alta.';}] ]},
+                    {id:'fans',q:'Los aficionados esperan mucho de ti. ¿Qué les dices?',opts:[
+                        ['Les prometo trabajo y compromiso.',()=>{this.player.morale='Alta';return 'La afición valora tu compromiso.';}],
+                        ['No puedo prometer títulos, pero sí esfuerzo.',()=>{this.player.morale='Normal';return 'Mensaje realista y profesional.';}],
+                        ['Si quieren resultados, tendrán que esperar.',()=>{this.player.morale='Baja';return 'Parte de la afición reacciona negativamente.';}] ]},
+                    {id:'contract',q:'Tu contrato termina pronto. ¿Qué esperas del próximo acuerdo?',opts:[
+                        ['Quiero seguir creciendo aquí.',()=>{this.player.morale='Alta';return 'El club valora tus palabras.';}],
+                        ['Mi agente buscará lo mejor para mi futuro.',()=>{this.player.morale='Normal';return 'Respuesta diplomática.';}],
+                        ['Quiero ser uno de los mejor pagados.',()=>{this.player.morale='Baja';return 'La exigencia salarial genera comentarios.';}] ]},
+                    {id:'national',q:'Te han convocado con la selección. ¿Qué significa para ti?',opts:[
+                        ['Es un sueño que quiero aprovechar.',()=>{this.player.morale='Máxima';return 'La respuesta ilusiona a la afición.';}],
+                        ['Es un premio al trabajo del equipo.',()=>{this.player.morale='Alta';return 'Respuesta humilde y bien recibida.';}],
+                        ['Ahora quiero demostrar que merecía estar antes.',()=>{if(this.player.age<32)this.player.stats.passing=Math.min(99,this.player.stats.passing+1);return 'Tu ambición genera expectación.';}] ]},
+                    {id:'future',q:'¿Dónde te ves dentro de cinco años?',opts:[
+                        ['Espero seguir compitiendo al máximo nivel.',()=>{this.player.morale='Alta';return 'Proyectas ambición y profesionalidad.';}],
+                        ['Prefiero vivir el presente y trabajar temporada a temporada.',()=>{this.player.morale='Normal';return 'Respuesta sensata.';}],
+                        ['No descarto cambiar de país y vivir una nueva aventura.',()=>{this.player.morale='Baja';return 'Aumentan los rumores sobre tu futuro.';}] ]}
+                ];
+                const used=this.player.askedPressQuestions || [];
+                const available=questions.filter(q=>!used.includes(q.id));
+                if(!available.length || (this.player.pressConferenceCount||0)>=3) return;
+                const item=available[Math.floor(Math.random()*available.length)];
+                document.getElementById('pressQuestion').innerText=item.q;
+                document.getElementById('pressOptions').innerHTML=item.opts.map((o,i)=>`<button onclick="app.answerPressConference(${i})" class="w-full text-left bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-blue-400 rounded-xl p-4 text-sm font-bold transition">${o[0]}</button>`).join('');
+                this.currentPress=item;
+                document.getElementById('modalPressConference').classList.remove('hidden');
+            }
+            answerPressConference(index){
+                if(!this.currentPress)return;
+                const result=this.currentPress.opts[index][1]();
+                this.player.ovr=this.calculateOVR(this.player.stats);
+                this.player.pressConferenceCount=(this.player.pressConferenceCount||0)+1;
+                this.player.askedPressQuestions=this.player.askedPressQuestions||[];
+                this.player.askedPressQuestions.push(this.currentPress.id);
+                this.newsList.unshift(`Rueda de prensa: ${this.currentPress.q}`);
+                document.getElementById('modalPressConference').classList.add('hidden');
+                this.toast('🎙️ Rueda de prensa',result);
+                this.currentPress=null;
+                this.saveGame();
+            }
+
+            generateTransferOffers(openModal=true) {
+                let pool=this.player.ovr<68?CLUB_DATABASE.tier4:this.player.ovr<76?[...CLUB_DATABASE.tier3,...CLUB_DATABASE.tier4]:this.player.ovr<85?[...CLUB_DATABASE.tier2,...CLUB_DATABASE.tier3]:[...CLUB_DATABASE.tier1,...CLUB_DATABASE.tier2];
+                const filtered=pool.filter(c=>c.name!==this.player.club);
+                const shuffled=filtered.sort(()=>Math.random()-0.5).slice(0,3);
+                this.player.repOffers=[];
+                shuffled.forEach(c=>{
+                    const salary=this.calculateRealisticSalary(this.player.ovr,c.rep);
+                    const role=this.player.ovr>=c.rep-3?'Titular':'Rotación';
+                    this.player.repOffers.push({club:c.name,salary,league:c.league,role,reason: role==='Titular'?'Te ofrecen un papel importante.':'El club te ve como jugador de rotación.'});
+                });
+                if(this.player.age<=24 && Math.random()<0.7){
+                    const loanPool=[...CLUB_DATABASE.tier3,...CLUB_DATABASE.tier4].filter(c=>c.name!==this.player.club);
+                    const c=loanPool[Math.floor(Math.random()*loanPool.length)];
+                    const loanSalary=Math.round(this.player.salary*0.85/5000)*5000;
+                    this.player.repOffers.push({club:c.name,league:c.league,salary:loanSalary,role:'Titular',loan:true,reason:'Cesión pensada para darte minutos y continuidad.'});
+                }
+                this.renderRepresentative();
+                if(openModal){
+                    const container=document.getElementById('transferOffersList');
+                    container.innerHTML='<p class="text-xs text-slate-400">Las propuestas están ahora en <strong class="text-violet-400">Mi Representante</strong>.</p>';
+                    document.getElementById('stayClubName').innerText=this.player.club;
+                    document.getElementById('modalTransfers').classList.remove('hidden');
+                }
+            }
+
+            startContractNegotiation(club,salary,league,role){
+                this.negotiation={club,baseSalary:salary,salary,league,role,tension:18,steps:0};
+                document.getElementById('negClub').innerText=club;
+                document.getElementById('negOfferType').innerText='Contrato permanente · '+league;
+                document.getElementById('negRequestedSalary').value=Math.round(salary/5000)*5000;
+                document.getElementById('negStatus').innerText='La propuesta inicial del club está sobre la mesa.';
+                document.getElementById('modalTransfers').classList.add('hidden');
+                this.updateNegotiationUI();
+                document.getElementById('modalNegotiation').classList.remove('hidden');
+            }
+            updateNegotiationUI(){
+                if(!this.negotiation)return; const n=this.negotiation;
+                document.getElementById('negSalary').innerText=this.formatMoney(n.salary)+'/año';
+                document.getElementById('negRole').innerText=n.role;
+                document.getElementById('negTensionText').innerText=Math.round(n.tension)+'%';
+                document.getElementById('negTensionBar').style.width=n.tension+'%';
+                document.getElementById('negTensionBar').className='h-full transition-all duration-300 '+(n.tension<45?'bg-emerald-500':n.tension<70?'bg-amber-500':'bg-rose-500');
+                document.getElementById('negTensionHint').innerText=n.tension<40?'El club está bastante receptivo.':n.tension<70?'Tu petición se aleja de la oferta inicial.':'Petición muy exigente: el club puede rechazarla directamente.';
+            }
+            submitSalaryRequest(){
+                const n=this.negotiation;if(!n)return;
+                const input=document.getElementById('negRequestedSalary');
+                const requested=Math.round(Number(input.value)/5000)*5000;
+                if(!Number.isFinite(requested)||requested<1){document.getElementById('negStatus').innerText='Introduce un sueldo válido.';return;}
+                n.salary=requested; n.steps++;
+                const ratio=requested/Math.max(1,n.baseSalary);
+                // Cuanto más se aleja de la oferta, menor es la probabilidad. El club decide.
+                let chance = ratio<=1 ? 0.98 :
+                    ratio<=1.10 ? 0.88 :
+                    ratio<=1.25 ? 0.72 :
+                    ratio<=1.50 ? 0.50 :
+                    ratio<=1.90 ? 0.27 :
+                    ratio<=2.50 ? 0.12 :
+                    ratio<=3.50 ? 0.045 : 0.01;
+                const club=this.getClub(n.club);
+                const rep=club?.rep || 65;
+                chance += (rep>=90 ? 0.04 : rep>=82 ? 0.02 : rep<70 ? -0.04 : 0);
+                if(n.role==='Rotación' && ratio>1.35) chance-=0.10;
+                chance=Math.max(0.01,Math.min(0.98,chance));
+                n.tension=Math.min(100,18+Math.max(0,ratio-1)*48);
+                this.updateNegotiationUI();
+                if(Math.random()<chance){
+                    this.finishNegotiation(true);
+                }else{
+                    this.finishNegotiation(false,`El club rechaza tu petición de ${this.formatMoney(requested)}/año. Su límite salarial no llega a esa cifra.`);
+                }
+            }
+            negotiateContract(action){
+                if(action==='accept'){this.finishNegotiation(true);return;}
+                this.submitSalaryRequest();
+            }
+            finishNegotiation(accepted,reason=''){
+                const n=this.negotiation;if(!n)return;
+                if(accepted){ this.acceptTransfer(n.club,n.salary,n.league,n.role); this.toast('🤝 Contrato firmado',`${n.club} acepta ${this.formatMoney(n.salary)}/año.`); }
+                else this.toast('❌ Negociación rota',reason||'El club ha rechazado tus condiciones.');
+                document.getElementById('modalNegotiation').classList.add('hidden'); this.negotiation=null;
+            }
+            closeNegotiation(){document.getElementById('modalNegotiation').classList.add('hidden');this.negotiation=null;}
+            acceptLoan(newClub,league,salary){
+                document.getElementById('modalTransfers').classList.add('hidden');
+                this.player.loanFrom=this.player.club; this.player.loanUntil=this.currentYear+1; this.player.loanParentLeague=this.player.league; this.player.loanParentSalary=this.player.salary; this.player.club=newClub; this.player.league=league.trim(); this.player.salary=salary; this.player.squadRole='Titular'; this.player.development=this.createClubEnvironment(this.getClub(newClub));
+                this.player.clubsHistory.push(newClub+' (cesión)'); this.toast('📋 Cesión aceptada',`Vas cedido a ${newClub} para tener minutos. Volverás al club de origen al terminar la temporada.`); this.saveGame(); this.updateUI();
+            }
+            acceptTransfer(newClub,salary,league,squadRole='Rotación') {
+                audioManager.playUnlock(); this.player.club=newClub; this.player.league=league; this.player.salary=salary; this.player.squadRole=squadRole; this.player.development=this.createClubEnvironment(this.getClub(newClub));
+                if(!this.player.clubsHistory.includes(newClub)) this.player.clubsHistory.push(newClub);
+                if(league===this.player.targetLeague)this.unlockAchievement('dream_league'); if(CLUB_DATABASE.tier1.some(c=>c.name===newClub))this.unlockAchievement('giant_club');
+                document.getElementById('modalTransfers').classList.add('hidden'); this.saveGame(); this.updateUI();
+            }
+            stayAtCurrentClub() {
+                audioManager.playClick();
+                document.getElementById('modalTransfers').classList.add('hidden');
+                this.toast('Renovación', `Sigues en ${this.player.club}.`);
+            }
+
+            generateLeagueNewsAndTransfers() {
+                const names=['Mateo Rivas','Luka Marin','Álex Duarte','Nicolás Ferreyra','Iker Salas','Bruno Valdés','Thiago Costa','Adrián Mena','Hugo Vidal','Marco Santoro','Dani Serrano','Gabriel Nogueira','Leo Fabbri','Álvaro Montes','Samuel Torres','Enzo Cabrera','Matías Romero','Julián Soria','Rayan Benali','Diego Navarro'];
+                const allClubs=Object.values(CLUB_DATABASE).flat();
+                const c1=allClubs[Math.floor(Math.random()*allClubs.length)];
+                const candidates=allClubs.filter(c=>c.name!==c1.name && Math.abs(c.rep-c1.rep)<=18);
+                const c2=candidates[Math.floor(Math.random()*candidates.length)]||allClubs[Math.floor(Math.random()*allClubs.length)];
+                const n=names[Math.floor(Math.random()*names.length)];
+                const rep=(c1.rep+c2.rep)/2;
+                let min,max;
+                if(rep<68){min=0.15;max=1.8;}
+                else if(rep<78){min=0.6;max=6;}
+                else if(rep<86){min=2.5;max=18;}
+                else if(rep<92){min=8;max=55;}
+                else {min=25;max=160;}
+                const fee=Math.round((min+Math.random()*(max-min))*10)/10;
+                const type=Math.random()<0.18?'Cesión':'Fichaje';
+                const feeText=type==='Cesión'?'Cesión':`€${fee.toFixed(1)}M`;
+                this.leagueTransfers.unshift({player:n,from:c1.name,to:c2.name,fee:feeText,type});
+                this.leagueTransfers=this.leagueTransfers.slice(0,30);
+                this.newsList.unshift(`${n} ${type==='Cesión'?'sale cedido':'firma'} por ${c2.name} procedente de ${c1.name} por ${type==='Cesión'?'una temporada':feeText}.`);
+                this.newsList=this.newsList.slice(0,30);
+            }
+
+            renderLifestyleShop() {
+                document.getElementById('lifestyleBank').innerText = `€${this.player.bank.toLocaleString()}`;
+                const container = document.getElementById('lifestyleShopList');
+                container.innerHTML = '';
+
+                REALISTIC_LUXURY_SHOP.forEach(item => {
+                    const owned = this.player.inventory.includes(item.id);
+                    const div = document.createElement('div');
+                    div.className = `p-4 rounded-xl border flex justify-between items-center ${owned ? 'bg-emerald-500/10 border-emerald-500/40' : 'bg-slate-900 border-slate-800'}`;
+                    div.innerHTML = `
+                        <div class="flex items-center space-x-3">
+                            <div class="p-3 bg-slate-800 text-amber-400 rounded-xl"><i class="fa-solid ${item.icon} text-lg"></i></div>
+                            <div>
+                                <h4 class="font-bold text-slate-100 text-sm">${item.name}</h4>
+                                <span class="text-xs font-bold text-amber-400">€${item.cost.toLocaleString()}</span>
+                            </div>
+                        </div>
+                        ${owned ? 
+                            `<span class="text-xs text-emerald-400 font-bold bg-emerald-500/20 px-3 py-1 rounded-lg">En tu Propiedad</span>` : 
+                            `<button onclick="app.buyLuxuryItem('${item.id}', ${item.cost})" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-lg text-xs uppercase">Comprar</button>`
+                        }
+                    `;
+                    container.appendChild(div);
+                });
+            }
+
+            buyLuxuryItem(itemId, cost) {
+                if (this.player.bank < cost) {
+                    this.toast('Saldo Insuficiente', 'No dispones de suficiente dinero acumulado.');
+                    return;
+                }
+                audioManager.playUnlock();
+                this.player.bank -= cost;
+                this.player.inventory.push(itemId);
+                if (itemId.includes('car')) this.unlockAchievement('supercar');
+                this.toast('¡Compra Exitosa!', 'El artículo ha sido añadido a tu colección personal.');
+                this.saveGame();
+                this.updateUI();
+                this.renderLifestyleShop();
+            }
+
+            buyActivity(type) {
+                if (type === 'party') {
+                    if (this.player.bank < 25000) { this.toast('Sin Saldo', 'Necesitas €25,000'); return; }
+                    this.player.bank -= 25000;
+                    this.player.morale = 'Máxima';
+                    this.player.energy = Math.max(40, this.player.energy - 15);
+                    this.player.personality = 'Fiestero / Rebelde';
+                    this.toast('Fiesta VIP', 'Disfrutaste la noche pero la prensa filtró fotos.');
+                } else if (type === 'trainer') {
+                    if (this.player.bank < 80000) { this.toast('Sin Saldo', 'Necesitas €80,000'); return; }
+                    this.player.bank -= 80000;
+                    this.player.injuryRisk = Math.max(1, this.player.injuryRisk - 5);
+                    this.toast('Preparador Contratado', 'Riesgo de lesión reducido.');
+                } else if (type === 'chef') {
+                    if (this.player.bank < 60000) { this.toast('Sin Saldo', 'Necesitas €60,000'); return; }
+                    this.player.bank -= 60000;
+                    this.player.energy = 100;
+                    this.toast('Chef & Fisioterapeuta', 'Físico restaurado al 100%.');
+                }
+                this.saveGame();
+                this.updateUI();
+            }
+
+            renderNewsFeed() {
+                const newsContainer = document.getElementById('newsFeedList');
+                newsContainer.innerHTML = '';
+                this.newsList.forEach(n => {
+                    const div = document.createElement('div');
+                    div.className = "bg-slate-900 p-3.5 rounded-xl border border-slate-800 text-xs text-slate-300";
+                    div.innerText = n;
+                    newsContainer.appendChild(div);
+                });
+
+                const transfersContainer = document.getElementById('leagueTransfersList');
+                transfersContainer.innerHTML = '';
+                if (this.leagueTransfers.length === 0) {
+                    transfersContainer.innerHTML = `<p class="text-xs text-slate-500">Sin traspasos recientes.</p>`;
+                } else {
+                    this.leagueTransfers.forEach(t => {
+                        const div = document.createElement('div');
+                        div.className = "bg-slate-900 p-3.5 rounded-xl border border-slate-800 flex justify-between items-center text-xs";
+                        div.innerHTML = `
+                            <div>
+                                <strong class="text-slate-100">${t.player}</strong>
+                                <span class="text-slate-400 block">${t.from} ➔ ${t.to}</span>
+                            </div>
+                            <span class="text-emerald-400 font-bold">${t.fee}</span>
+                        `;
+                        transfersContainer.appendChild(div);
+                    });
+                }
+            }
+
+            checkAchievements() {
+                this.unlockAchievement('debut');
+                if (this.player.totals.goals >= 10) this.unlockAchievement('first_goal');
+                if (this.player.totals.trophies >= 1) this.unlockAchievement('trophy');
+                if (this.player.squadRole === 'Titular') this.unlockAchievement('starter');
+                if (this.player.bank >= 5000000) this.unlockAchievement('rich');
+                if (this.player.ovr >= 88) this.unlockAchievement('ballon_dor');
+                if (this.player.age >= 38) this.unlockAchievement('legend');
+            }
+
+            unlockAchievement(achId) {
+                if (this.unlockedAchievements.has(achId)) return;
+                this.unlockedAchievements.add(achId);
+                const ach = ACHIEVEMENTS.find(a => a.id === achId);
+                if (ach) {
+                    audioManager.playUnlock();
+                    this.toast('🏆 Logro Desbloqueado', `${ach.title}: ${ach.desc}`);
+                }
+                this.renderAchievementsMini();
+            }
+
+            toast(title, message) {
+                const container = document.getElementById('toastContainer');
+                const toastEl = document.createElement('div');
+                toastEl.className = "glass-panel border-l-4 border-l-emerald-500 text-slate-100 p-4 rounded-xl shadow-xl max-w-sm flex items-start space-x-3 transition-all duration-300 transform translate-y-2";
+                toastEl.innerHTML = `
+                    <div class="text-emerald-400 text-lg"><i class="fa-solid fa-circle-check"></i></div>
+                    <div>
+                        <h4 class="font-bold text-sm">${title}</h4>
+                        <p class="text-xs text-slate-300 mt-0.5">${message}</p>
+                    </div>
+                `;
+                container.appendChild(toastEl);
+                setTimeout(() => {
+                    toastEl.classList.add('opacity-0', 'translate-x-4');
+                    setTimeout(() => toastEl.remove(), 300);
+                }, 4000);
+            }
+
+            getCountryFlag(country) {
+                const found = COUNTRIES.find(c => c.name === country);
+                return found ? found.flag : '⚽';
+            }
+
+            updateUI() {
+                if (!this.player) return;
+
+                document.getElementById('headerQuickStats').classList.remove('hidden');
+                document.getElementById('btnResetData').classList.remove('hidden');
+                document.getElementById('appNavigation').classList.remove('hidden');
+
+                document.getElementById('navAge').innerText = this.player.age;
+                document.getElementById('navClub').innerText = this.player.club;
+                document.getElementById('navOVR').innerText = this.player.ovr;
+                document.getElementById('navBank').innerText = this.formatMoney(this.player.bank);
+
+                document.getElementById('hubPlayerName').innerText = this.player.name;
+                document.getElementById('hubPos').innerText = this.player.positionName || this.player.position;
+                document.getElementById('hubShirtNumber').innerText = this.player.shirtNumber || 10;
+                document.getElementById('hubOrigin').innerText = this.player.nationality || 'Desconocida';
+                this.renderPlayerFace();
+                document.getElementById('hubClub').innerText = this.player.club;
+                document.getElementById('hubAge').innerText = this.player.age;
+                document.getElementById('hubOVRBadge').innerText = `${this.player.ovr} OVR`;
+                document.getElementById('hubSalary').innerText = `${this.formatMoney(this.player.salary)}/año`;
+                document.getElementById('hubBank').innerText = `€${this.player.bank.toLocaleString()}`;
+                document.getElementById('hubSquadRole').innerText = this.player.squadRole;
+
+                this.renderTrophyRoom();
+                const nightBtn = document.getElementById('btnNightTraining');
+                const nightUsed = this.player.nightTrainingYear === this.currentYear;
+                nightBtn.classList.toggle('opacity-50', nightUsed);
+                nightBtn.classList.toggle('cursor-not-allowed', nightUsed);
+                document.getElementById('btnNightTrainingLabel').innerText = nightUsed ? 'Ya entrenaste (1/temporada)' : 'Entrenar a Escondidas';
+                document.getElementById('hubCurrentYear').innerText = this.currentYear;
+
+                document.getElementById('hubPersonality').innerText = this.player.personality;
+                document.getElementById('hubEnergy').innerText = `${this.player.energy}%`;
+                document.getElementById('hubMorale').innerText = this.player.morale;
+                document.getElementById('hubInjuryRisk').innerText = `${this.player.injuryRisk}%`;
+
+                if (this.activeInjury) {
+                    document.getElementById('hubInjuryBanner').classList.remove('hidden');
+                    document.getElementById('hubInjuryDetail').innerText = `${this.activeInjury.name} (${this.activeInjury.gamesLost} partidos de baja).`;
+                } else {
+                    document.getElementById('hubInjuryBanner').classList.add('hidden');
+                }
+
+                document.getElementById('hubFlag').innerText = this.getCountryFlag(this.player.nationality);
+                const dev=this.player.development || this.createClubEnvironment(this.getClub(this.player.club)); this.player.development=dev;
+                document.getElementById('hubDevelopmentScore').innerText=`${dev.score}/100`;
+                document.getElementById('hubCoachQuality').innerText=dev.coachQuality;
+                document.getElementById('hubFacilities').innerText=dev.facilities;
+                document.getElementById('hubMedicalQuality').innerText=dev.medicalQuality;
+                document.getElementById('hubDevelopmentText').innerText = dev.score<58 ? 'Entorno débil: puedes progresar, pero el club está limitando parte de tu techo de desarrollo.' : dev.score<72 ? 'Entorno correcto, aunque todavía hay margen para mejorar la calidad del trabajo diario.' : dev.score<85 ? 'Buen entorno de desarrollo: entrenadores y recursos acompañan bien tu evolución.' : 'Entorno de élite: estructura de entrenamiento, instalaciones y seguimiento favorecen una progresión alta.';
+                this.renderRepresentative();
+
+                const setAttr = (id, barId, val) => {
+                    document.getElementById(id).innerText = val;
+                    document.getElementById(barId).style.width = `${Math.min(100, Math.max(0, val))}%`;
+                };
+                setAttr('attrPace', 'barPace', this.player.stats.pace);
+                setAttr('attrShooting', 'barShooting', this.player.stats.shooting);
+                setAttr('attrPassing', 'barPassing', this.player.stats.passing);
+                setAttr('attrDribbling', 'barDribbling', this.player.stats.dribbling);
+                setAttr('attrDefense', 'barDefense', this.player.stats.defense);
+                setAttr('attrPhysical', 'barPhysical', this.player.stats.physical);
+
+                document.getElementById('statTotalApps').innerText = this.player.totals.apps;
+                document.getElementById('statTotalGoals').innerText = this.player.totals.goals;
+                document.getElementById('statTotalAssists').innerText = this.player.totals.assists;
+                document.getElementById('statAvgRating').innerText = this.player.totals.avgRating;
+                document.getElementById('statTrophiesCount').innerText = `${this.player.totals.trophies} Títulos`;
+                this.updateCareerPeak();
+                document.getElementById('statMarketValue').innerText = this.formatMoney(this.calculateMarketValue(this.player.ovr));
+
+                document.getElementById('achievementsRatio').innerText = `${this.unlockedAchievements.size}/${ACHIEVEMENTS.length}`;
+
+                if (this.player.age >= 38) this.retirePlayer();
+            }
+
+            renderAchievementsMini() {
+                const list = document.getElementById('achievementsMiniList');
+                list.innerHTML = '';
+                ACHIEVEMENTS.forEach(ach => {
+                    const isUnlocked = this.unlockedAchievements.has(ach.id);
+                    const div = document.createElement('div');
+                    div.className = `p-2.5 rounded-xl border flex flex-col items-center justify-center text-center transition ${isUnlocked ? 'bg-amber-500/10 border-amber-500/40 text-amber-400' : 'bg-slate-900 border-slate-800 text-slate-600'}`;
+                    div.title = `${ach.title}: ${ach.desc}`;
+                    div.innerHTML = `<i class="fa-solid ${ach.icon} text-base mb-1"></i><span class="text-[9px] truncate w-full font-bold">${ach.title}</span>`;
+                    list.appendChild(div);
+                });
+            }
+
+            renderHistoryTable() {
+                const tbody = document.getElementById('tableHistoryBody');
+                tbody.innerHTML = '';
+                if (this.history.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="10" class="p-4 text-center text-slate-500">Aún no has jugado temporadas.</td></tr>`;
+                    return;
+                }
+                [...this.history].reverse().forEach(h => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-800/40 transition";
+                    tr.innerHTML = `
+                        <td class="p-4 font-bold text-slate-200">${h.year}</td>
+                        <td class="p-4 text-slate-400">${h.age}</td>
+                        <td class="p-4 text-emerald-400 font-semibold">${h.club}</td>
+                        <td class="p-4">${h.apps}</td>
+                        <td class="p-4 text-emerald-400 font-bold">${h.goals}</td>
+                        <td class="p-4 text-teal-400">${h.assists}</td>
+                        <td class="p-4 text-amber-400 font-bold">${h.rating}</td>
+                        <td class="p-4 font-bold text-amber-400">${h.ovr}</td>
+                        <td class="p-4 text-slate-300 font-bold">${(/^€\d+k$/.test(h.salary)) ? this.formatMoney(parseInt(h.salary.slice(1)) * 1000) : h.salary}</td>
+                        <td class="p-4 text-slate-300 text-xs">${h.trophy}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            logToHub(msg) {
+                const container = document.getElementById('hubCareerLog');
+                const p = document.createElement('p');
+                p.className = "border-l-2 border-emerald-500 pl-2 py-0.5 text-xs text-slate-300";
+                p.innerText = msg;
+                container.prepend(p);
+            }
+
+            buildCareerStory() {
+                const seasons=[...(this.history||[])].sort((a,b)=>a.year-b.year);
+                if(!seasons.length) return `${this.player.name} comenzó su carrera en ${this.currentYear} con ${this.player.club}.`;
+                const spells=[];
+                seasons.forEach(h=>{
+                    const last=spells[spells.length-1];
+                    if(last && last.club===h.club){ last.end=h.year; last.apps+=Number(h.apps)||0; last.goals+=Number(h.goals)||0; last.assists+=Number(h.assists)||0; if(h.trophy&&h.trophy!=='-') last.trophies.push(...h.trophy.split(' · ')); }
+                    else spells.push({club:h.club,start:h.year,end:h.year,apps:Number(h.apps)||0,goals:Number(h.goals)||0,assists:Number(h.assists)||0,trophies:h.trophy&&h.trophy!=='-'?h.trophy.split(' · '):[]});
+                });
+                const stages=spells.map(s=>{ const years=s.start===s.end?`${s.start}`:`${s.start}-${s.end}`; const trophies=s.trophies.length?` · ${s.trophies.length} título${s.trophies.length>1?'s':''}`:''; return `${s.club} (${years}, ${s.apps} PJ, ${s.goals} G, ${s.assists} A${trophies})`; });
+                let story=`${this.player.name} comenzó su carrera en ${seasons[0].year} con ${seasons[0].club}. `;
+                story+=stages.join(' → ')+'. ';
+                story+=`Terminó con ${this.player.totals.apps} partidos, ${this.player.totals.goals} goles, ${this.player.totals.assists} asistencias y ${this.player.totals.trophies} títulos, alcanzando una media máxima de ${this.player.careerPeakOVR||this.player.ovr}.`;
+                return story;
+            }
+
+            retirePlayer(manual = false) {
+                this.updateCareerPeak();
+                const peakStats = this.player.careerPeakStats || this.player.stats;
+                const peakOVR = this.player.careerPeakOVR || this.player.ovr;
+                const peakValue = this.player.careerPeakMarketValue || this.calculateMarketValue(peakOVR);
+                const peakClub = this.player.careerPeakClub || this.player.club;
+                this.showScreen('retirement');
+                document.getElementById('retireAge').innerText = this.player.age;
+                document.getElementById('careerStory').innerText = this.buildCareerStory();
+                document.getElementById('cardOVR').innerText = peakOVR;
+                document.getElementById('cardPos').innerText = this.player.positionName || this.player.position;
+                document.getElementById('cardName').innerText = this.player.name.toUpperCase();
+                document.getElementById('cardClub').innerText = peakClub;
+                document.getElementById('cardFlag').innerText = this.getCountryFlag(this.player.nationality);
+                document.getElementById('cardPace').innerText = peakStats.pace;
+                document.getElementById('cardSho').innerText = peakStats.shooting;
+                document.getElementById('cardPas').innerText = peakStats.passing;
+                document.getElementById('cardDri').innerText = peakStats.dribbling;
+                document.getElementById('cardDef').innerText = peakStats.defense;
+                document.getElementById('cardPhy').innerText = peakStats.physical;
+                document.getElementById('cardTrophiesTotal').innerHTML = `<i class="fa-solid fa-trophy text-amber-400"></i> ${this.player.totals.trophies} Títulos`;
+                document.getElementById('retireApps').innerText = this.player.totals.apps;
+                document.getElementById('retireGoals').innerText = this.player.totals.goals;
+                document.getElementById('retireAssists').innerText = this.player.totals.assists;
+                document.getElementById('retireBank').innerText = `€${this.player.bank.toLocaleString()}`;
+                document.getElementById('retirePeakOVR').innerText = peakOVR;
+                document.getElementById('retirePeakValue').innerText = this.formatMoney(this.player.peakMarketValue || this.calculateMarketValue(peakOVR));
+                document.getElementById('retirePeakOVR').innerText = peakOVR;
+                document.getElementById('retirePeakValue').innerText = this.formatMoney(peakValue);
+
+                const garageDiv = document.getElementById('retireGarageList');
+                garageDiv.innerHTML = '';
+                if (this.player.inventory.length === 0) garageDiv.innerText = 'Sin lujos comprados.';
+                else this.player.inventory.forEach(itemId => {
+                    const item = REALISTIC_LUXURY_SHOP.find(i => i.id === itemId);
+                    if (item) {
+                        const span = document.createElement('span');
+                        span.className = 'bg-slate-800 border border-slate-700 px-3 py-1 rounded-lg text-amber-400 font-semibold';
+                        span.innerText = item.name;
+                        garageDiv.appendChild(span);
+                    }
+                });
+                this.saveGame();
+            }
+
+            shareCard() {
+                const summary = `⚽ Franco's Academy - Leyenda: ${this.player.name} (${this.player.positionName || this.player.position}) - ${this.player.totals.goals} Goles, ${this.player.totals.assists} Asistencias, Fortuna de €${this.player.bank.toLocaleString()}. GRL Máxima: ${this.player.careerPeakOVR || this.player.ovr} · Valor Máximo: ${this.formatMoney(this.player.careerPeakMarketValue || this.calculateMarketValue(this.player.ovr))}.`;
+                navigator.clipboard.writeText(summary).then(() => {
+                    this.toast('Copiado', 'Resumen copiado al portapapeles.');
+                });
+            }
+
+            saveGame() {
+                const data = {
+                    player: this.player,
+                    unlockedAchievements: Array.from(this.unlockedAchievements),
+                    history: this.history,
+                    currentYear: this.currentYear,
+                    newsList: this.newsList,
+                    leagueTransfers: this.leagueTransfers,
+                    activeInjury: this.activeInjury
+                };
+                localStorage.setItem('francos_academy_v3', JSON.stringify(data));
+            }
+
+            loadSaveGame() {
+                const raw = localStorage.getItem('francos_academy_v3');
+                if (!raw) return;
+                try {
+                    const data = JSON.parse(raw);
+                    this.player = data.player || null;
+                    this.unlockedAchievements = new Set(data.unlockedAchievements || []);
+                    this.history = data.history || [];
+                    this.currentYear = data.currentYear || 2026;
+                    this.newsList = data.newsList || [];
+                    this.leagueTransfers = data.leagueTransfers || [];
+                    this.activeInjury = data.activeInjury || null;
+                    if (this.player) {
+                        this.player.peakOVR = this.player.peakOVR || this.player.ovr;
+                        this.player.peakStats = this.player.peakStats || { ...this.player.stats };
+                        this.player.peakMarketValue = this.player.peakMarketValue || this.calculateMarketValue(this.player.peakOVR);
+                        this.player.careerPeakOVR = this.player.careerPeakOVR || this.player.ovr || 0;
+                        this.player.careerPeakMarketValue = this.player.careerPeakMarketValue || this.calculateMarketValue(this.player.careerPeakOVR);
+                        this.player.careerPeakStats = this.player.careerPeakStats || { ...this.player.stats };
+                        this.player.careerPeakClub = this.player.careerPeakClub || this.player.club;
+                        this.player.shirtNumber = this.player.shirtNumber || 10;
+                        this.player.development = this.player.development || this.createClubEnvironment(this.getClub(this.player.club));
+                        this.player.repMessages = this.player.repMessages || [];
+                        this.player.repOffers = this.player.repOffers || [];
+                        this.player.repUnread = !!this.player.repUnread;
+                        this.player.seasonCount = Number.isFinite(this.player.seasonCount) ? this.player.seasonCount : 0;
+                        this.player.faceTraits = this.player.faceTraits || this.generateRandomFaceTraits();
+                        this.player.faceSeed = this.player.faceSeed || Math.floor(Math.random()*2147483647);
+                    }
+                    // Corrige partidas antiguas que hayan quedado con cifras absurdas como €3000M.
+                    this.leagueTransfers = this.leagueTransfers.map(t => {
+                        if (!t || t.type === 'Cesión' || !t.fee) return t;
+                        const match = String(t.fee).match(/€([0-9.,]+)M/i);
+                        if (!match) return t;
+                        const oldFee = parseFloat(match[1].replace(',','.'));
+                        if (!Number.isFinite(oldFee) || oldFee > 160) {
+                            const from = Object.values(CLUB_DATABASE).flat().find(c => c.name === t.from);
+                            const to = Object.values(CLUB_DATABASE).flat().find(c => c.name === t.to);
+                            const rep = ((from?.rep || 65) + (to?.rep || 65)) / 2;
+                            const min = rep < 68 ? .15 : rep < 78 ? .6 : rep < 86 ? 2.5 : rep < 92 ? 8 : 25;
+                            const max = rep < 68 ? 1.8 : rep < 78 ? 6 : rep < 86 ? 18 : rep < 92 ? 55 : 160;
+                            const fee = Math.round((min + Math.random() * (max-min))*10)/10;
+                            return { ...t, fee:`€${fee.toFixed(1)}M` };
+                        }
+                        return t;
+                    });
+                } catch(e) {
+                    console.error('Error loading save:', e);
+                }
+            }
+
+            confirmReset() {
+                if (confirm('¿Reiniciar carrera en Franco\'s Academy? Perderás todo tu progreso actual.')) {
+                    localStorage.removeItem('francos_academy_v3');
+                    location.reload();
+                }
+            }
+        }
+
+        const app = new FootballCareerApp();
+        window.onload = () => {
+            app.init();
+            if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+                navigator.serviceWorker.register('./sw.js').catch(() => {});
+            }
+        };
+    </script>
+</body>
+</html>
